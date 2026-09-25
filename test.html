@@ -44,7 +44,7 @@
   .remember-row input{width:16px;height:16px;accent-color:var(--green);cursor:pointer}
   .form-err{color:var(--unread);font-size:12.5px;min-height:20px;margin-bottom:6px}
   .btn-primary{width:100%;background:var(--green);color:#fff;border-radius:8px;padding:13px;
-    font-size:15px;font-weight:500;transition:opacity .15s}
+    font-size:15px;font-weight:500}
   .btn-primary:hover{opacity:.9}
   .tabs{display:flex;background:#E9E9E9;border-radius:8px;padding:3px;margin-bottom:22px}
   .tabs button{flex:1;padding:9px;border-radius:6px;font-size:13.5px;color:var(--sub)}
@@ -55,25 +55,24 @@
   #appView{height:100%;display:flex}
   #sidebar{width:280px;background:var(--panel);border-right:1px solid var(--line);
     display:flex;flex-direction:column;flex-shrink:0}
-  .sb-head{padding:16px 16px 12px;display:flex;align-items:center;gap:10px}
+  .sb-head{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;cursor:pointer}
+  .sb-head:hover{background:#FAFAFA}
   .sb-head b{font-size:15px}
+  .sb-me-name{font-size:14px;font-weight:600}
+  .sb-me-uid{font-size:10.5px;color:var(--sub);font-family:ui-monospace,Menlo,monospace}
   .net-status{padding:0 16px 10px;font-size:12px;color:var(--sub);line-height:1.5}
-  .sb-id{padding:0 16px 12px}
-  .id-chip{background:#F6F6F6;border-radius:7px;padding:7px 10px;display:flex;
-    align-items:center;justify-content:space-between;gap:8px}
-  .id-chip code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:.05em}
-  .id-chip button{color:var(--sub);padding:2px;font-size:12px}
-  .id-chip button:hover{color:var(--green)}
-  .btn-add{margin:0 16px 10px;display:flex;align-items:center;justify-content:center;gap:6px;
-    background:var(--green);color:#fff;border-radius:8px;padding:10px;font-size:13.5px;font-weight:500}
-  .btn-add:hover{opacity:.9}
-  .sb-label{padding:6px 16px;font-size:11px;color:var(--sub);letter-spacing:.1em}
+  .btn-row{display:flex;gap:8px;padding:0 16px 10px}
+  .btn-row button{flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
+    background:var(--green);color:#fff;border-radius:8px;padding:9px 4px;font-size:12.5px;font-weight:500}
+  .btn-row button:hover{opacity:.9}
+  .sb-label{padding:6px 16px 2px;font-size:11px;color:var(--sub);letter-spacing:.1em}
   #contactList{flex:1;overflow-y:auto;padding-bottom:10px}
   .c-item{display:flex;align-items:center;gap:11px;padding:10px 16px;cursor:pointer;position:relative}
   .c-item:hover{background:#F5F5F5}
   .c-item.on{background:#EBEBEB}
   .avatar{width:42px;height:42px;border-radius:8px;color:#fff;font-size:17px;font-weight:600;
-    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative}
+  .avatar img,.m-avatar img,.big-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
   .c-info{flex:1;min-width:0}
   .c-name{font-size:14.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .c-uid{font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace}
@@ -103,7 +102,9 @@
   .m-row.me{flex-direction:row-reverse;align-self:flex-end}
   .m-row.them{align-self:flex-start}
   .m-avatar{width:36px;height:36px;border-radius:6px;color:#fff;font-size:14px;font-weight:600;
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden}
+  .m-col{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .m-sender{font-size:11px;color:#9A9A9A;padding:0 4px}
   .m-bubble{padding:10px 13px;border-radius:8px;font-size:14.5px;line-height:1.55;
     white-space:pre-wrap;word-break:break-word}
   .m-bubble.has-img{padding:5px;background:#fff;white-space:normal}
@@ -111,6 +112,7 @@
   .them .m-bubble{background:#fff}
   .me .m-bubble{background:var(--bubble)}
   .me .m-bubble.has-img{background:#fff}
+  .m-pending{font-size:10px;color:#C8A415;margin-left:4px}
   .m-link{color:#576B95;text-decoration:none;cursor:pointer;word-break:break-all}
   .m-link:hover{text-decoration:underline}
 
@@ -140,7 +142,7 @@
   .btn-send{background:var(--green);color:#fff;border-radius:8px;padding:0 22px;font-size:14px;font-weight:500;
     height:42px;flex-shrink:0}
 
-  /* ══ 内置浏览器（仿微信） ══ */
+  /* ══ 内置浏览器 ══ */
   #webview{position:fixed;inset:0;background:#fff;z-index:500;display:flex;flex-direction:column}
   .wv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F7F7F7;border-bottom:1px solid var(--line)}
   .wv-bar button{color:#576B95;font-size:14px;padding:6px 10px;border-radius:6px}
@@ -151,7 +153,6 @@
   .wv-hint{font-size:11px;color:#B08A2E;text-align:center;padding:4px;background:#FFF8E1;line-height:1.5}
   #wvFrame{flex:1;width:100%;border:none;background:#fff}
 
-  /* ══ 图片查看器 ══ */
   #imgViewer{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:550;
     display:flex;align-items:center;justify-content:center;cursor:zoom-out}
   #imgViewer img{max-width:92vw;max-height:88vh;border-radius:8px}
@@ -159,7 +160,8 @@
   /* ══ 弹窗 ══ */
   .mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;display:flex;
     align-items:center;justify-content:center;padding:20px}
-  .modal{background:#fff;border-radius:12px;width:100%;max-width:340px;padding:22px}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:340px;padding:22px;
+    max-height:84vh;overflow-y:auto}
   .modal h3{font-size:16px;margin-bottom:16px;font-weight:600}
   .req-user{display:flex;align-items:center;gap:12px;margin-bottom:18px}
   .req-msg{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:18px}
@@ -169,11 +171,33 @@
   .mbtn.green{background:var(--green);color:#fff}
   .modal-close{float:right;color:var(--sub);font-size:20px;line-height:1;padding:2px 4px}
   .modal-close:hover{color:var(--ink)}
-  .fm-info{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .fm-info{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .big-avatar{width:56px;height:56px;border-radius:10px;color:#fff;font-size:22px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
   .fm-item{border-top:1px solid var(--line)}
-  .fm-item button{width:100%;text-align:left;padding:13px 4px;font-size:14.5px;color:var(--ink)}
+  .fm-item button{width:100%;text-align:left;padding:12px 4px;font-size:14.5px;color:var(--ink)}
   .fm-item button.danger{color:var(--unread)}
   .fm-item button:hover{background:#FAFAFA}
+  /* 群成员列表 */
+  .gm-list{margin-bottom:10px}
+  .gm-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F2F2F2}
+  .gm-item .avatar{width:34px;height:34px;font-size:14px}
+  .gm-name{flex:1;font-size:14px}
+  .gm-role{font-size:10px;border-radius:4px;padding:1px 6px}
+  .role-owner{color:#B8860B;background:#FFF6D9}
+  .role-admin{color:#576B95;background:#E8F0FE}
+  .role-member{color:var(--sub);background:#F2F2F2}
+  .gm-ops{display:flex;gap:6px}
+  .gm-ops button{font-size:11px;color:#576B95;padding:3px 8px;border-radius:5px;background:#F2F6FC}
+  .gm-ops button:hover{background:#E0EAFB}
+  .gm-ops button.danger{color:var(--unread);background:#FDEEEE}
+  /* 好友多选 */
+  .pick-list{max-height:220px;overflow-y:auto;margin-bottom:14px;border:1px solid var(--line);border-radius:8px}
+  .pick-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid #F5F5F5}
+  .pick-item:last-child{border-bottom:none}
+  .pick-item:hover{background:#F7F7F7}
+  .pick-item input{width:16px;height:16px;accent-color:var(--green)}
+  .pick-item .avatar{width:32px;height:32px;font-size:13px}
 
   @media (max-width:680px){
     #sidebar{width:100%;border-right:none}
@@ -229,19 +253,27 @@
 <!-- ═══════ 主界面 ═══════ -->
 <div id="appView" hidden>
   <aside id="sidebar">
-    <div class="sb-head">
-      <div style="width:34px;height:34px;border-radius:8px;background:var(--green);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center">A</div>
-      <b>AzChat</b>
+    <!-- 个人信息（点头像改头像/昵称） -->
+    <div class="sb-head" id="sbMe" title="点击修改头像和昵称">
+      <div class="avatar" id="myAvatar" style="background:var(--green)">A</div>
+      <div>
+        <div class="sb-me-name" id="myName">—</div>
+        <div class="sb-me-uid" id="myUidShort">—</div>
+      </div>
+      <span style="margin-left:auto;color:var(--sub);font-size:12px">✏️</span>
     </div>
     <div class="net-status" id="netStatus">● 正在连接信令服务器…</div>
-    <div class="sb-id">
+    <div class="sb-id" style="display:none" id="uidRow">
       <div class="id-chip">
         <code id="myUid">—</code>
         <button type="button" id="btnCopyUid">复制</button>
       </div>
     </div>
-    <button type="button" class="btn-add" id="btnAddFriend">＋ 添加好友</button>
-    <div class="sb-label">好友列表</div>
+    <div class="btn-row">
+      <button type="button" id="btnAddFriend">＋ 好友</button>
+      <button type="button" id="btnCreateGroup">👥 群聊</button>
+    </div>
+    <div class="sb-label">消息</div>
     <div id="contactList"></div>
     <div class="sb-foot">
       <button type="button" id="btnBackup">备份</button>
@@ -253,7 +285,7 @@
   <section id="chatPane">
     <div id="chatEmpty">
       <div class="logo" style="opacity:.25">A</div>
-      <div>选择一位好友开始点对点聊天</div>
+      <div>选择好友或群聊开始聊天</div>
     </div>
     <div id="chatBox" hidden style="display:flex;flex-direction:column;flex:1;min-height:0">
       <div class="chat-head">
@@ -267,7 +299,6 @@
       </div>
       <div id="msgs"></div>
       <div class="composer-wrap">
-        <!-- 表情面板 -->
         <div id="emojiPanel" hidden>
           <div class="ep-tabs">
             <button type="button" id="epTabEmoji" class="on">😊 Emoji</button>
@@ -278,7 +309,7 @@
         </div>
         <div class="composer">
           <button type="button" class="btn-emoji" id="btnEmoji" title="表情">😊</button>
-          <input id="msgInput" type="text" placeholder="输入消息，链接可在内置浏览器打开…" maxlength="2000">
+          <input id="msgInput" type="text" placeholder="输入消息…" maxlength="2000">
           <button type="button" class="btn-send" id="btnSend">发送</button>
         </div>
       </div>
@@ -286,20 +317,19 @@
   </section>
 </div>
 
-<!-- ═══════ 内置浏览器（仿微信） ═══════ -->
+<!-- 内置浏览器 -->
 <div id="webview" hidden>
   <div class="wv-bar">
     <button type="button" id="wvBack">‹ 返回</button>
     <div class="wv-title" id="wvTitle">加载中…</div>
-    <button type="button" id="wvRefresh">⟳ 刷新</button>
+    <button type="button" id="wvRefresh">⟳</button>
     <button type="button" id="wvExternal">↗ 新窗口</button>
   </div>
   <div class="wv-url" id="wvUrl"></div>
-  <div class="wv-hint">提示：部分网站（如百度、淘宝）禁止被内嵌显示为空白，此时请点右上角「新窗口」打开</div>
+  <div class="wv-hint">部分网站禁止内嵌显示为空白，请点「新窗口」打开</div>
   <iframe id="wvFrame" rel="noreferrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
 </div>
 
-<!-- 图片查看 -->
 <div id="imgViewer" hidden><img id="imgViewerSrc" alt=""></div>
 
 <!-- 添加好友弹窗 -->
@@ -335,29 +365,99 @@
   </div>
 </div>
 
-<!-- 聊天设置 / 删除好友弹窗 -->
+<!-- 建群弹窗 -->
+<div class="mask" id="groupCreateModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="groupCreateModal">×</button>
+    <h3>创建群聊</h3>
+    <div class="field">
+      <label>群名称</label>
+      <input id="groupNameInput" type="text" placeholder="2–16 个字符" maxlength="16">
+    </div>
+    <div class="form-err" id="groupCreateErr"></div>
+    <button type="button" class="mbtn green" id="btnDoCreateGroup" style="width:100%">创建（创建后可邀请好友）</button>
+  </div>
+</div>
+
+<!-- 邀请好友进群弹窗 -->
+<div class="mask" id="groupInviteModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="groupInviteModal">×</button>
+    <h3>邀请好友进群</h3>
+    <div class="req-msg" id="giHint"></div>
+    <div class="pick-list" id="giList"></div>
+    <div class="form-err" id="giErr"></div>
+    <button type="button" class="mbtn green" id="btnDoInvite" style="width:100%">发送邀请（对方需在线）</button>
+  </div>
+</div>
+
+<!-- 入群邀请弹窗 -->
+<div class="mask" id="gInviteReqModal" hidden>
+  <div class="modal">
+    <h3>群聊邀请</h3>
+    <div class="req-msg" id="girText"></div>
+    <div class="modal-btns">
+      <button type="button" class="mbtn gray" id="girReject">拒绝</button>
+      <button type="button" class="mbtn green" id="girAccept">加入群聊</button>
+    </div>
+  </div>
+</div>
+
+<!-- 群聊信息弹窗 -->
+<div class="mask" id="groupModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="groupModal">×</button>
+    <h3 id="gmTitle">群聊信息</h3>
+    <div class="gm-list" id="gmList"></div>
+    <div class="form-err" id="gmErr"></div>
+    <div class="fm-item"><button type="button" id="btnGroupInvite">➕ 邀请好友进群</button></div>
+    <div class="fm-item"><button type="button" id="btnGroupLeave" class="danger">🚪 退出群聊</button></div>
+    <div class="fm-item" id="disbandRow" hidden><button type="button" class="danger" id="btnGroupDisband">💥 解散群聊</button></div>
+  </div>
+</div>
+
+<!-- 好友设置弹窗 -->
 <div class="mask" id="friendModal" hidden>
   <div class="modal">
     <button type="button" class="modal-close" data-close="friendModal">×</button>
     <h3>聊天信息</h3>
     <div class="fm-info">
-      <div class="avatar" id="fmAvatar"></div>
+      <div class="big-avatar" id="fmAvatar"></div>
       <div>
         <div style="font-weight:600;font-size:15px" id="fmName"></div>
         <div style="font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace" id="fmUid"></div>
       </div>
     </div>
-    <div class="fm-item">
-      <button type="button" id="btnClearHistory">🧹 清空聊天记录</button>
+    <div class="fm-item"><button type="button" id="btnClearHistory">🧹 清空聊天记录</button></div>
+    <div class="fm-item"><button type="button" class="danger" id="btnDeleteFriend">🗑 删除好友</button></div>
+  </div>
+</div>
+
+<!-- 个人资料弹窗 -->
+<div class="mask" id="profileModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="profileModal">×</button>
+    <h3>我的资料</h3>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:18px">
+      <div class="big-avatar" id="pmAvatar" style="width:72px;height:72px;font-size:28px;cursor:pointer" title="点击更换头像">A</div>
+      <div style="font-size:11.5px;color:var(--sub)">点击头像更换（自动压缩）</div>
     </div>
-    <div class="fm-item">
-      <button type="button" class="danger" id="btnDeleteFriend">🗑 删除好友</button>
+    <div class="field">
+      <label>昵称</label>
+      <input id="pmName" type="text" maxlength="16">
     </div>
+    <div class="field">
+      <label>AzChat ID（不可修改）</label>
+      <input id="pmUid" class="uid-input" type="text" disabled style="background:#F6F6F6;color:var(--sub)">
+    </div>
+    <div class="form-err" id="pmErr"></div>
+    <button type="button" class="mbtn green" id="btnSaveProfile" style="width:100%">保存（在线好友将同步）</button>
   </div>
 </div>
 
 <input type="file" id="importFile" accept=".json,application/json" style="display:none">
 <input type="file" id="stickerFile" accept="image/*" style="display:none">
+<input type="file" id="avatarFile" accept="image/*" style="display:none">
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
@@ -433,7 +533,7 @@ function sha256(msg){
   return out;
 }
 
-/* ═══════════ 随机数 / 记住密码的本地加密 ═══════════ */
+/* ═══════════ 随机 / 密码本地加密 ═══════════ */
 function randHex(len){
   var out = '';
   try {
@@ -493,12 +593,30 @@ function avatarColor(str){
   for (var i = 0; i < str.length; i++) n += str.charCodeAt(i);
   return AV_COLORS[n % AV_COLORS.length];
 }
-function avatarEl(name, key, small){
+/* 头像节点：有自定义头像用图，否则用首字母色块 */
+function avatarEl(name, key, small, avatarUrl){
   var el = document.createElement('div');
   el.className = small ? 'm-avatar' : 'avatar';
   el.style.background = avatarColor(String(key || name || '?'));
-  el.textContent = String(name || '?').charAt(0).toUpperCase();
+  if (avatarUrl) {
+    var img = document.createElement('img');
+    img.src = avatarUrl;
+    img.alt = '';
+    el.appendChild(img);
+  } else {
+    el.textContent = String(name || '?').charAt(0).toUpperCase();
+  }
   return el;
+}
+function roleLabel(role){
+  if (role === 'owner') return '群主';
+  if (role === 'admin') return '管理员';
+  return '成员';
+}
+function roleClass(role){
+  if (role === 'owner') return 'role-owner';
+  if (role === 'admin') return 'role-admin';
+  return 'role-member';
 }
 function openModal(id){ $(id).hidden = false; }
 function closeModal(id){ $(id).hidden = true; }
@@ -516,15 +634,10 @@ function copyText(text, okMsg){
     navigator.clipboard.writeText(text).then(function(){ showToast(okMsg); }, fallback);
   } else fallback();
 }
-/* URL 检测 */
 var URL_RE = /(https?:\/\/[^\s<>"'）】」》。，、！？；：]+)/;
 function domainOf(u){
   try { var a = document.createElement('a'); a.href = u; return a.hostname; }
   catch(e){ return u; }
-}
-function normalizeUrl(u){
-  if (/^https?:\/\//i.test(u)) return u;
-  return 'http://' + u;
 }
 
 /* ═══════════ 本地数据 ═══════════ */
@@ -541,11 +654,13 @@ function findNameByUid(uid){
   for (var n in db) { if (db[n].uid === uid) return n; }
   return null;
 }
+function isGroupKey(key){ return !!(meRec() && meRec().groups && meRec().groups[key]); }
 
 var me = null, myUid = null, peer = null;
-var conns = {}, unread = {}, currentChat = null;
+var conns = {}, unread = {}, currentChat = null, chatType = 'friend';
+var flushTimer = null;
 
-/* ═══════════ 启动：有会话直接进入聊天 ═══════════ */
+/* ═══════════ 启动 ═══════════ */
 (function(){
   try {
     var u = storage.getItem(SES_KEY);
@@ -592,7 +707,8 @@ function setMode(r){
       if (db[name]) { err.textContent = '该昵称已被注册（本机）'; return; }
       var salt = randHex(8);
       var uid = 'AZ' + sha256('azchat-id::' + name + salt).slice(0, 8).toUpperCase();
-      db[name] = { salt: salt, hash: sha256(salt + pass), uid: uid, contacts: {}, chats: {}, stickers: [] };
+      db[name] = { salt: salt, hash: sha256(salt + pass), uid: uid, name: name, avatar: '',
+                   contacts: {}, chats: {}, stickers: [], groups: {}, outbox: [] };
       saveDB(db);
       showToast('注册成功！你的 ID：' + uid);
       enterApp(name);
@@ -601,32 +717,56 @@ function setMode(r){
       if (!m) { err.textContent = '请输入完整的 ID，格式为 AZ + 8 位字符'; return; }
       var loginUid = 'AZ' + m[1];
       var loginName = findNameByUid(loginUid);
-      if (!loginName) { err.textContent = '该 ID 未在本机注册过，请先注册（或从原设备备份后在本机导入）'; return; }
+      if (!loginName) { err.textContent = '该 ID 未在本机注册过，请先注册'; return; }
       var r2 = db[loginName];
       if (sha256(r2.salt + pass) !== r2.hash) { err.textContent = '密码错误'; return; }
+      if (!r2.groups) r2.groups = {};
+      if (!r2.outbox) r2.outbox = [];
+      if (!r2.name) r2.name = loginName;
+      if (r2.avatar === undefined) r2.avatar = '';
       if ($('fRemember').checked) {
         var enc = encPass(pass);
         if (enc) { r2.remembered = true; r2.encPass = enc; }
         var d2 = loadDB(); d2[loginName] = r2; saveDB(d2);
       }
       enterApp(loginName);
-      showToast('欢迎回来，' + loginName);
+      showToast('欢迎回来，' + (r2.name || loginName));
     }
   } catch(ex) {
     $('formErr').textContent = '出错了：' + ex.message;
   }
 };
 
+function refreshMyIdentity(){
+  var rec = meRec();
+  $('myName').textContent = rec.name || me;
+  $('myUidShort').textContent = rec.uid;
+  $('myUid').textContent = rec.uid;
+  var av = $('myAvatar');
+  av.innerHTML = '';
+  if (rec.avatar) {
+    var img = document.createElement('img');
+    img.src = rec.avatar;
+    av.appendChild(img);
+  } else {
+    av.textContent = (rec.name || me).charAt(0).toUpperCase();
+  }
+}
+
 function enterApp(name){
   me = name;
   var rec = loadDB()[name];
   if (!rec.stickers) rec.stickers = [];
+  if (!rec.groups) rec.groups = {};
+  if (!rec.outbox) rec.outbox = [];
+  if (!rec.name) rec.name = name;
+  if (rec.avatar === undefined) rec.avatar = '';
   myUid = rec.uid;
   try { storage.setItem(SES_KEY, name); } catch(e) {}
-  $('myUid').textContent = myUid;
+  refreshMyIdentity();
   $('authView').hidden = true;
   $('appView').hidden = false;
-  unread = {}; currentChat = null; conns = {};
+  unread = {}; currentChat = null; chatType = 'friend'; conns = {};
   showEmptyChat();
   renderContacts();
   renderStickerGrid();
@@ -635,10 +775,15 @@ function enterApp(name){
     if (!ok) { setNet('err'); showToast('无法加载 P2P 组件（PeerJS），请检查网络后刷新', true); return; }
     startPeer();
   });
+  /* 离线消息投递探测：每 20 秒尝试把待送达消息推给上线的好友/群主 */
+  if (flushTimer) clearInterval(flushTimer);
+  flushTimer = setInterval(flushOutbox, 20000);
+  setTimeout(flushOutbox, 5000);
 }
 
  $('btnLogout').onclick = function(){
   if (!confirm('退出后下次打开需要重新输入 ID 和密码，确定退出？')) return;
+  if (flushTimer) { clearInterval(flushTimer); flushTimer = null; }
   if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
   try { storage.removeItem(SES_KEY); } catch(e) {}
   me = null;
@@ -650,7 +795,88 @@ function enterApp(name){
 
  $('btnCopyUid').onclick = function(){ copyText(myUid, '已复制我的 ID：' + myUid); };
 
-/* ═══════════ PeerJS 加载（双 CDN 兜底） ═══════════ */
+/* ═══════════ 个人资料：头像 / 昵称 ═══════════ */
+ $('sbMe').onclick = function(){
+  var rec = meRec();
+  renderBigAvatar($('pmAvatar'), rec.avatar, rec.name || me);
+  $('pmName').value = rec.name || me;
+  $('pmUid').value = rec.uid;
+  $('pmErr').textContent = '';
+  openModal('profileModal');
+};
+function renderBigAvatar(el, url, name){
+  el.innerHTML = '';
+  if (url) {
+    var img = document.createElement('img');
+    img.src = url;
+    el.appendChild(img);
+  } else {
+    el.textContent = String(name || '?').charAt(0).toUpperCase();
+  }
+}
+ $('pmAvatar').onclick = function(){ $('avatarFile').click(); };
+ $('avatarFile').onchange = function(){
+  var f = this.files[0];
+  if (!f) return;
+  if (f.size > 8 * 1024 * 1024) { showToast('图片太大，请选 8MB 以内的', true); this.value=''; return; }
+  compressImage(f, 96, function(dataUrl, err){
+    if (err) { showToast('头像处理失败：' + err, true); return; }
+    renderBigAvatar($('pmAvatar'), dataUrl, '');
+    $('pmAvatar').dataset.newAvatar = dataUrl;
+  });
+  this.value = '';
+};
+ $('btnSaveProfile').onclick = function(){
+  var rec = meRec();
+  var newName = $('pmName').value.replace(/^\s+|\s+$/g, '');
+  if (newName.length < 1) { $('pmErr').textContent = '昵称不能为空'; return; }
+  var changed = false;
+  if (newName !== rec.name) { rec.name = newName; changed = true; }
+  var newAv = $('pmAvatar').dataset.newAvatar || '';
+  if (newAv && newAv !== rec.avatar) { rec.avatar = newAv; changed = true; }
+  if (!changed) { closeModal('profileModal'); return; }
+  saveMe(rec);
+  refreshMyIdentity();
+  renderContacts();
+  if (currentChat) renderMsgs();
+  closeModal('profileModal');
+  $('pmAvatar').dataset.newAvatar = '';
+  /* 把新资料推给所有已连接的人 */
+  var profile = { t: 'profile', uid: myUid, name: rec.name, avatar: rec.avatar || '' };
+  for (var u in conns) {
+    if (conns[u] && conns[u].open) {
+      try { conns[u].send(profile); } catch(e) {}
+    }
+  }
+  /* 群成员：把新资料发给所在群的群主，由群主 gsync 同步 */
+  var gids = [];
+  for (var g in rec.groups) gids.push(g);
+  gids.forEach(function(gid){
+    var g = rec.groups[gid];
+    if (g.owner !== myUid) {
+      deliverOrQueue(g.owner, gid, { t: 'profile', uid: myUid, name: rec.name, avatar: rec.avatar || '' }, 0);
+    } else {
+      /* 我自己是群主：直接更新成员表并广播 */
+      updateMyGroupProfiles(gid);
+    }
+  });
+  showToast('资料已保存');
+};
+function updateMyGroupProfiles(gid){
+  var rec = meRec();
+  var g = rec.groups[gid];
+  if (!g) return;
+  for (var i = 0; i < g.members.length; i++) {
+    if (g.members[i].uid === myUid) {
+      g.members[i].name = rec.name;
+      g.members[i].avatar = rec.avatar || '';
+    }
+  }
+  saveMe(rec);
+  gsyncGroup(gid);
+}
+
+/* ═══════════ PeerJS 加载 ═══════════ */
 var PEER_CDNS = [
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
@@ -669,20 +895,20 @@ function ensurePeerJS(cb){
   tryNext();
 }
 
-/* ═══════════ 信令状态指示 ═══════════ */
+/* ═══════════ 信令状态 ═══════════ */
 function setNet(state){
   var el = $('netStatus');
   if (!el) return;
   if (state === 'on') {
     el.innerHTML = '<span style="color:var(--green)">● 已连接信令服务器</span>，可加好友 / 收发消息';
   } else if (state === 'err') {
-    el.innerHTML = '<span style="color:var(--unread)">● 信令连不上！</span>你的网络受限，请换网络（如手机热点）后刷新重试';
+    el.innerHTML = '<span style="color:var(--unread)">● 信令连不上！</span>请换网络（如手机热点）后刷新重试';
   } else {
     el.innerHTML = '<span style="color:#C8A415">● 正在连接信令服务器…</span>';
   }
 }
 
-/* ═══════════ Peer 层（多 STUN + TURN 中继兜底） ═══════════ */
+/* ═══════════ Peer 层 ═══════════ */
 function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
 function peerOpts(){
   return {
@@ -712,7 +938,7 @@ function startPeer(){
   var opened = false;
   peer = new Peer(peerIdOf(myUid), peerOpts());
   setTimeout(function(){
-    if (!opened) { setNet('err'); showToast('连接信令服务器超时，请检查网络（可尝试手机热点）', true); }
+    if (!opened) { setNet('err'); showToast('连接信令服务器超时，请检查网络', true); }
   }, 12000);
   peer.on('open', function(){
     opened = true;
@@ -740,34 +966,67 @@ function startPeer(){
   });
 }
 
+/* ═══════════ 统一投递：在线直发，失败进离线队列 ═══════════ */
+function deliverOrQueue(toUid, key, payload, msgTs){
+  ensureConn(toUid, function(c){
+    try { c.send(payload); } catch(e) {}
+    markSent(key, msgTs);
+  }, function(){
+    var rec = meRec();
+    rec.outbox.push({ to: toUid, key: key, payload: payload, ts: msgTs || Date.now() });
+    if (rec.outbox.length > 200) rec.outbox = rec.outbox.slice(-200);
+    saveMe(rec);
+  });
+}
+function markSent(key, ts){
+  if (!ts) return;
+  var rec = meRec();
+  var arr = rec.chats[key];
+  if (!arr) return;
+  var hit = false;
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i].ts === ts && arr[i].pending) { arr[i].pending = false; hit = true; }
+  }
+  if (hit) { saveMe(rec); if (currentChat === key) renderMsgs(); }
+}
+/* 周期探测：把离线队列中的消息推给上线的对方 */
+function flushOutbox(){
+  if (!me || !peer || !peer.open) return;
+  var rec = meRec();
+  if (!rec.outbox || !rec.outbox.length) return;
+  var byTarget = {};
+  rec.outbox.forEach(function(item){
+    if (!byTarget[item.to]) byTarget[item.to] = [];
+    byTarget[item.to].push(item);
+  });
+  var targets = [];
+  for (var t in byTarget) targets.push(t);
+  targets.forEach(function(to){
+    ensureConn(to, function(c){
+      var rec2 = meRec();
+      var remain = [];
+      (byTarget[to] || []).forEach(function(item){
+        try {
+          c.send(item.payload);
+          markSent(item.key, item.ts);
+        } catch(e) { remain.push(item); }
+      });
+      /* 从队列移除已发送的 */
+      var sentSet = {};
+      (byTarget[to] || []).forEach(function(item){ sentSet[item.ts] = true; });
+      rec2.outbox = rec2.outbox.filter(function(o){
+        return !(o.to === to && sentSet[o.ts]);
+      });
+      saveMe(rec2);
+      showToast('离线消息已送达');
+    }, null);
+  });
+}
+
 function bindIncoming(c){
   c.on('data', function(d){
-    try {
-      if (!d || typeof d !== 'object' || !d.uid) return;
-      var uid = String(d.uid);
-      if (d.t === 'add') { handleAddReq(c, uid, d.name); return; }
-      var rec = meRec();
-      if (!rec || !rec.contacts[uid]) return;   // 非好友消息一律丢弃
-      if (!conns[uid]) { conns[uid] = c; updateChatStatus(); }
-      if (d.t === 'chat' && typeof d.text === 'string') {
-        receiveMsg(uid, { w:'them', text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
-      } else if (d.t === 'sticker' && typeof d.img === 'string' && d.img.indexOf('data:image/') === 0) {
-        if (d.img.length > 500000) return;      // 贴图上限 500KB
-        receiveMsg(uid, { w:'them', img:d.img, ts:d.ts||Date.now() });
-      } else if (d.t === 'del') {
-        /* 对方把你删了：本地同步移除 */
-        if (rec.contacts[uid]) {
-          var nm = rec.contacts[uid].name;
-          delete rec.contacts[uid];
-          delete rec.chats[uid];
-          saveMe(rec);
-          if (currentChat === uid) { $('chatPane').className=''; currentChat=null; showEmptyChat(); }
-          renderContacts();
-          showToast(nm + ' 已将你从好友列表移除', true);
-        }
-        try { c.close(); } catch(e2) {}
-      }
-    } catch(e) { showToast('处理消息出错：' + e.message, true); }
+    try { handleData(c, d); }
+    catch(e) { showToast('处理消息出错：' + e.message, true); }
   });
   c.on('close', function(){
     for (var u in conns) { if (conns[u] === c) delete conns[u]; }
@@ -775,12 +1034,203 @@ function bindIncoming(c){
   });
 }
 
+function handleData(c, d){
+  if (!d || typeof d !== 'object' || !d.uid) return;
+  var uid = String(d.uid);
+  var rec = meRec();
+  if (!rec) return;
+
+  /* 好友请求 */
+  if (d.t === 'add') { handleAddReq(c, uid, d.name); return; }
+
+  /* 资料更新（昵称/头像） */
+  if (d.t === 'profile') {
+    var changed = false;
+    if (rec.contacts[uid]) {
+      if (d.name) { rec.contacts[uid].name = String(d.name).slice(0,16); changed = true; }
+      if (typeof d.avatar === 'string') { rec.contacts[uid].avatar = d.avatar; changed = true; }
+    }
+    /* 我作为群主：更新该成员在群里的资料并广播 */
+    for (var gid in rec.groups) {
+      var g = rec.groups[gid];
+      if (g.owner !== myUid) continue;
+      for (var i = 0; i < g.members.length; i++) {
+        if (g.members[i].uid === uid) {
+          if (d.name) g.members[i].name = String(d.name).slice(0,16);
+          if (typeof d.avatar === 'string') g.members[i].avatar = d.avatar;
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      saveMe(rec);
+      renderContacts();
+      if (currentChat) renderMsgs();
+      /* 广播最新的群资料 */
+      for (var gid2 in rec.groups) {
+        if (rec.groups[gid2].owner === myUid) gsyncGroup(gid2);
+      }
+    }
+    return;
+  }
+
+  /* 群消息（成员→群主 或 群主→成员） */
+  if (d.t === 'gmsg') {
+    var g1 = rec.groups[d.gid];
+    if (!g1) return;
+    var senderIn = false;
+    for (var j = 0; j < g1.members.length; j++) {
+      if (g1.members[j].uid === uid) { senderIn = true; break; }
+    }
+    if (!senderIn) return;
+    if (typeof d.text === 'string') {
+      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
+    } else if (typeof d.img === 'string' && d.img.indexOf('data:image/') === 0 && d.img.length <= 500000) {
+      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), img:d.img, ts:d.ts||Date.now() });
+    }
+    /* 我是群主：转发给除发送者外的所有成员（不在线的进离线队列） */
+    if (g1.owner === myUid && uid !== myUid) {
+      g1.members.forEach(function(m){
+        if (m.uid === uid || m.uid === myUid) return;
+        deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, gid:d.gid, ts:d.ts }, 0);
+      });
+    }
+    return;
+  }
+
+  /* 群状态同步（群主→成员） */
+  if (d.t === 'gsync') {
+    if (!d.group || !d.group.gid) return;
+    var gNew = d.group;
+    var meIn = false, myRole = 'member';
+    for (var k = 0; k < gNew.members.length; k++) {
+      if (gNew.members[k].uid === myUid) { meIn = true; myRole = gNew.members[k].role; break; }
+    }
+    if (!meIn) {
+      /* 被移出群 */
+      if (rec.groups[gNew.gid]) {
+        delete rec.groups[gNew.gid];
+        delete rec.chats[gNew.gid];
+        saveMe(rec);
+        if (currentChat === gNew.gid) { $('chatPane').className=''; currentChat=null; showEmptyChat(); }
+        renderContacts();
+        showToast('你已被移出群聊「' + gNew.name + '」', true);
+      }
+      return;
+    }
+    var old = rec.groups[gNew.gid];
+    gNew.myRole = myRole;
+    rec.groups[gNew.gid] = gNew;
+    saveMe(rec);
+    if (old && old.name !== gNew.name && currentChat === gNew.gid) {
+      $('chName').textContent = gNew.name;
+    }
+    renderContacts();
+    if (currentChat === gNew.gid) updateChatStatus();
+    return;
+  }
+
+  /* 入群邀请 */
+  if (d.t === 'ginvite') {
+    if (!d.group || rec.groups[d.group.gid]) return;
+    reqQueue.push({ type:'ginvite', c:c, group:d.group, fromName:String(d.name||'').slice(0,16) });
+    nextReq();
+    return;
+  }
+
+  /* 被踢 */
+  if (d.t === 'gkick') {
+    var g2 = rec.groups[d.gid];
+    if (g2) {
+      delete rec.groups[d.gid];
+      delete rec.chats[d.gid];
+      saveMe(rec);
+      if (currentChat === d.gid) { $('chatPane').className=''; currentChat=null; showEmptyChat(); }
+      renderContacts();
+      showToast('你已被移出群聊「' + g2.name + '」', true);
+    }
+    try { c.close(); } catch(e2) {}
+    return;
+  }
+
+  /* 群主收到踢人请求（管理员执行） */
+  if (d.t === 'gkickreq') {
+    var g3 = rec.groups[d.gid];
+    if (!g3 || g3.owner !== myUid) return;
+    removeGroupMember(d.gid, uid, '管理员将其移出');
+    return;
+  }
+
+  /* 成员退群（群主收到） */
+  if (d.t === 'gleave') {
+    var g4 = rec.groups[d.gid];
+    if (!g4 || g4.owner !== myUid) return;
+    removeGroupMember(d.gid, uid, '退出了群聊');
+    try { c.close(); } catch(e2) {}
+    return;
+  }
+
+  /* 角色变更通知 */
+  if (d.t === 'grole') {
+    var g5 = rec.groups[d.gid];
+    if (g5) {
+      g5.myRole = d.role;
+      for (var k2 = 0; k2 < g5.members.length; k2++) {
+        if (g5.members[k2].uid === myUid) g5.members[k2].role = d.role;
+      }
+      saveMe(rec);
+      showToast('你在群「' + g5.name + '」中的身份变更为：' + roleLabel(d.role));
+    }
+    return;
+  }
+
+  /* 解散群聊 */
+  if (d.t === 'gdisband') {
+    var g6 = rec.groups[d.gid];
+    if (g6) {
+      delete rec.groups[d.gid];
+      delete rec.chats[d.gid];
+      saveMe(rec);
+      if (currentChat === d.gid) { $('chatPane').className=''; currentChat=null; showEmptyChat(); }
+      renderContacts();
+      showToast('群聊「' + g6.name + '」已被群主解散', true);
+    }
+    try { c.close(); } catch(e2) {}
+    return;
+  }
+
+  /* 删除好友 */
+  if (d.t === 'del') {
+    if (rec.contacts[uid]) {
+      var nm = rec.contacts[uid].name;
+      delete rec.contacts[uid];
+      delete rec.chats[uid];
+      saveMe(rec);
+      if (currentChat === uid) { $('chatPane').className=''; currentChat=null; showEmptyChat(); }
+      renderContacts();
+      showToast(nm + ' 已将你从好友列表移除', true);
+    }
+    try { c.close(); } catch(e2) {}
+    return;
+  }
+
+  /* 单聊：必须好友 */
+  if (!rec.contacts[uid]) return;
+  if (!conns[uid]) { conns[uid] = c; updateChatStatus(); }
+  if (d.t === 'chat' && typeof d.text === 'string') {
+    receiveMsg(uid, { w:'them', text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
+  } else if (d.t === 'sticker' && typeof d.img === 'string' && d.img.indexOf('data:image/') === 0) {
+    if (d.img.length > 500000) return;
+    receiveMsg(uid, { w:'them', img:d.img, ts:d.ts||Date.now() });
+  }
+}
+
 /* ═══════════ 添加好友 ═══════════ */
  $('btnAddFriend').onclick = function(){
   $('addErr').textContent = '';
   $('addInput').value = '';
   if (peer && !peer.open) {
-    showToast('你的页面还没连上信令服务器，请看侧栏状态提示，连上后再试', true);
+    showToast('还没连上信令服务器，请看侧栏状态提示', true);
     return;
   }
   openModal('addModal');
@@ -799,10 +1249,7 @@ function bindIncoming(c){
   var uid = 'AZ' + m[1];
   if (uid === myUid) { err.textContent = '这是你自己的 ID 呀'; return; }
   if (meRec().contacts[uid]) { err.textContent = '对方已在你的好友列表中'; return; }
-  if (!peer || !peer.open) {
-    err.textContent = '你的页面未连上信令服务器（见侧栏提示），无法发起请求';
-    return;
-  }
+  if (!peer || !peer.open) { err.textContent = '未连上信令服务器，无法发起'; return; }
   err.textContent = '';
   closeModal('addModal');
   sendAddReq(uid);
@@ -819,19 +1266,22 @@ function sendAddReq(uid){
   }
   var timer = setTimeout(function(){
     if (!done) {
-      showToast('对方不在线或 ID 不存在。注意：对方必须在自己的设备上注册，并保持页面打开', true);
+      showToast('对方不在线或 ID 不存在。对方须在自己设备上注册并保持页面打开', true);
       finish();
     }
   }, 15000);
-  c.on('open', function(){ c.send({ t: 'add', uid: myUid, name: me }); });
+  c.on('open', function(){
+    var rec = meRec();
+    c.send({ t: 'add', uid: myUid, name: rec.name || me, avatar: rec.avatar || '' });
+  });
   c.on('data', function(d){
     clearTimeout(timer); finish();
     if (d && d.t === 'addok') {
       var rec = meRec();
-      rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16) };
+      rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16), avatar: d.avatar || '' };
       saveMe(rec);
       renderContacts();
-      showToast('已添加 ' + rec.contacts[uid].name + '，开始聊天吧');
+      showToast('已添加 ' + rec.contacts[uid].name);
     } else {
       showToast('对方拒绝了你的好友请求', true);
     }
@@ -846,30 +1296,61 @@ var reqQueue = [], reqShowing = false;
 function handleAddReq(c, uid, name){
   var rec = meRec();
   if (rec.contacts[uid]) {
-    try { c.send({ t: 'addok', uid: myUid, name: me }); } catch(e) {}
+    try { c.send({ t: 'addok', uid: myUid, name: rec.name || me, avatar: rec.avatar || '' }); } catch(e) {}
     return;
   }
-  reqQueue.push({ c: c, uid: uid, name: String(name || uid).slice(0, 16) });
+  reqQueue.push({ type:'add', c:c, uid:uid, name:String(name || uid).slice(0, 16) });
   nextReq();
 }
 function nextReq(){
   if (reqShowing || !reqQueue.length) return;
   reqShowing = true;
   var r = reqQueue.shift();
+
+  if (r.type === 'ginvite') {
+    $('girText').textContent = '「' + r.fromName + '」邀请你加入群聊「' + r.group.name + '」（' + r.group.members.length + ' 人）。';
+    openModal('gInviteReqModal');
+    $('girAccept').onclick = function(){
+      closeModal('gInviteReqModal');
+      var rec = meRec();
+      var myRole = 'member';
+      for (var i = 0; i < r.group.members.length; i++) {
+        if (r.group.members[i].uid === myUid) myRole = r.group.members[i].role;
+      }
+      r.group.myRole = myRole;
+      rec.groups[r.group.gid] = r.group;
+      rec.chats[r.group.gid] = rec.chats[r.group.gid] || [];
+      saveMe(rec);
+      renderContacts();
+      try { r.c.send({ t: 'gack', uid: myUid, name: rec.name || me, gid: r.group.gid, avatar: rec.avatar || '' }); } catch(e) {}
+      showToast('已加入群聊「' + r.group.name + '」');
+      reqShowing = false;
+      nextReq();
+    };
+    $('girReject').onclick = function(){
+      closeModal('gInviteReqModal');
+      reqShowing = false;
+      nextReq();
+    };
+    return;
+  }
+
+  /* 好友请求 */
   $('reqName').textContent = r.name;
   $('reqUid').textContent = r.uid;
-  $('reqText').textContent = '「' + r.name + '」请求添加你为好友。接受后你们即可点对点聊天。';
+  $('reqText').textContent = '「' + r.name + '」请求添加你为好友。';
   var av = $('reqAvatar');
+  av.innerHTML = '';
   av.style.background = avatarColor(r.uid);
   av.textContent = r.name.charAt(0).toUpperCase();
   openModal('reqModal');
   $('btnAccept').onclick = function(){
     closeModal('reqModal');
     var rec = meRec();
-    rec.contacts[r.uid] = { uid: r.uid, name: r.name };
+    rec.contacts[r.uid] = { uid: r.uid, name: r.name, avatar: r.avatar || '' };
     saveMe(rec);
     renderContacts();
-    try { r.c.send({ t: 'addok', uid: myUid, name: me }); } catch(e) {}
+    try { r.c.send({ t: 'addok', uid: myUid, name: rec.name || me, avatar: rec.avatar || '' }); } catch(e) {}
     conns[r.uid] = r.c;
     updateChatStatus();
     showToast('已添加 ' + r.name);
@@ -884,21 +1365,294 @@ function nextReq(){
   };
 }
 
-/* ═══════════ 聊天设置 / 删除好友 ═══════════ */
+/* ═══════════ 群聊：创建 / 邀请 / 管理 ═══════════ */
+ $('btnCreateGroup').onclick = function(){
+  $('groupCreateErr').textContent = '';
+  $('groupNameInput').value = '';
+  openModal('groupCreateModal');
+  $('groupNameInput').focus();
+};
+ $('btnDoCreateGroup').onclick = function(){
+  var name = $('groupNameInput').value.replace(/^\s+|\s+$/g, '');
+  if (name.length < 2) { $('groupCreateErr').textContent = '群名称至少 2 个字符'; return; }
+  var rec = meRec();
+  var gid = 'G' + randHex(4).toUpperCase();
+  rec.groups[gid] = {
+    gid: gid, name: name, owner: myUid, myRole: 'owner',
+    members: [{ uid: myUid, name: rec.name || me, role: 'owner', avatar: rec.avatar || '' }]
+  };
+  rec.chats[gid] = [];
+  saveMe(rec);
+  closeModal('groupCreateModal');
+  renderContacts();
+  openChat(gid);
+  showToast('群聊已创建！点 ⋯ 邀请好友进群（好友需在线）');
+};
+
+/* 邀请好友进群 */
+var inviteGid = null;
+ $('btnGroupInvite').onclick = function(){
+  if (!currentChat || !isGroupKey(currentChat)) return;
+  var g = meRec().groups[currentChat];
+  if (g.owner !== myUid) { showToast('只有群主可以邀请好友进群', true); return; }
+  inviteGid = currentChat;
+  var box = $('giList');
+  box.innerHTML = '';
+  $('giErr').textContent = '';
+  $('giHint').textContent = '勾选要邀请的好友（对方需在线才能收到邀请）：';
+  var rec = meRec();
+  var any = false;
+  for (var uid in rec.contacts) {
+    var f = rec.contacts[uid];
+    var already = false;
+    for (var i = 0; i < g.members.length; i++) {
+      if (g.members[i].uid === uid) { already = true; break; }
+    }
+    if (already) continue;
+    any = true;
+    var item = document.createElement('label');
+    item.className = 'pick-item';
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = uid;
+    item.appendChild(cb);
+    item.appendChild(avatarEl(f.name, uid, false, f.avatar));
+    var nm = document.createElement('div');
+    nm.className = 'c-name';
+    nm.textContent = f.name;
+    item.appendChild(nm);
+    box.appendChild(item);
+  }
+  if (!any) box.innerHTML = '<div style="padding:16px;text-align:center;color:var(--sub);font-size:12.5px">所有好友都已在群里</div>';
+  openModal('groupInviteModal');
+};
+ $('btnDoInvite').onclick = function(){
+  if (!inviteGid) return;
+  var rec = meRec();
+  var g = rec.groups[inviteGid];
+  if (!g) return;
+  var picked = [];
+  var boxes = $('giList').querySelectorAll('input[type=checkbox]:checked');
+  for (var i = 0; i < boxes.length; i++) picked.push(boxes[i].value);
+  if (!picked.length) { $('giErr').textContent = '请先勾选好友'; return; }
+  closeModal('groupInviteModal');
+  var invited = 0, failed = 0;
+  picked.forEach(function(uid){
+    var f = rec.contacts[uid];
+    var groupName = g.name;
+    var c = peer.connect(peerIdOf(uid), { reliable: true });
+    var done = false;
+    function finish(){ if (!done) { done = true; try { c.close(); } catch(e) {} } }
+    var timer = setTimeout(function(){
+      if (!done) { failed++; finish(); checkDone(); }
+    }, 15000);
+    function checkDone(){
+      if (invited + failed === picked.length) {
+        showToast('邀请完成：成功 ' + invited + ' 人' + (failed ? ('，' + failed + ' 人不在线未收到') : ''));
+      }
+    }
+    c.on('open', function(){
+      var snapshot = JSON.parse(JSON.stringify(g));
+      c.send({ t: 'ginvite', uid: myUid, name: rec.name || me, group: snapshot });
+    });
+    c.on('data', function(d){
+      clearTimeout(timer); finish();
+      if (d && d.t === 'gack' && d.gid === inviteGid) {
+        g.members.push({ uid: uid, name: String(d.name||uid).slice(0,16), role: 'member', avatar: d.avatar || '' });
+        saveMe(rec);
+        gsyncGroup(inviteGid);
+        renderContacts();
+        invited++;
+      } else {
+        failed++;
+      }
+      checkDone();
+    });
+    c.on('error', function(){ clearTimeout(timer); if (!done) { failed++; finish(); checkDone(); } });
+  });
+};
+
+/* 群主：同步群状态给所有成员 */
+function gsyncGroup(gid){
+  var rec = meRec();
+  var g = rec.groups[gid];
+  if (!g || g.owner !== myUid) return;
+  var snapshot = JSON.parse(JSON.stringify(g));
+  g.members.forEach(function(m){
+    if (m.uid === myUid) return;
+    deliverOrQueue(m.uid, gid, { t: 'gsync', uid: myUid, group: snapshot }, 0);
+  });
+}
+/* 群主：移除成员 */
+function removeGroupMember(gid, uid, reason){
+  var rec = meRec();
+  var g = rec.groups[gid];
+  if (!g || g.owner !== myUid) return;
+  g.members = g.members.filter(function(m){ return m.uid !== uid; });
+  saveMe(rec);
+  /* 通知被移出者 */
+  var kickPayload = { t: 'gkick', uid: myUid, gid: gid };
+  ensureConn(uid, function(c){ try { c.send(kickPayload); } catch(e) {} setTimeout(function(){ try { c.close(); } catch(e2) {} }, 500); }, function(){
+    rec.outbox.push({ to: uid, key: gid, payload: kickPayload, ts: Date.now() });
+    saveMe(rec);
+  });
+  gsyncGroup(gid);
+  renderContacts();
+  showToast('已将成员移出（' + reason + '）');
+}
+
+/* 群聊信息 / 管理 */
  $('btnMore').onclick = function(){
   if (!currentChat) return;
-  var f = meRec().contacts[currentChat];
+  if (chatType === 'group') openGroupModal(currentChat);
+  else openFriendModal(currentChat);
+};
+function openGroupModal(gid){
+  var rec = meRec();
+  var g = rec.groups[gid];
+  if (!g) return;
+  $('gmTitle').textContent = '群聊「' + g.name + '」（' + g.members.length + '人）';
+  var list = $('gmList');
+  list.innerHTML = '';
+  var myRole = g.myRole || (g.owner === myUid ? 'owner' : 'member');
+  g.members.forEach(function(m){
+    var row = document.createElement('div');
+    row.className = 'gm-item';
+    row.appendChild(avatarEl(m.name, m.uid, false, m.avatar));
+    var nm = document.createElement('div');
+    nm.className = 'gm-name';
+    nm.textContent = m.name + (m.uid === myUid ? '（我）' : '');
+    row.appendChild(nm);
+    var role = document.createElement('span');
+    role.className = 'gm-role ' + roleClass(m.role);
+    role.textContent = roleLabel(m.role);
+    row.appendChild(role);
+    /* 操作按钮（我是否拥有管理权） */
+    if (g.owner === myUid && m.uid !== myUid) {
+      var ops = document.createElement('div');
+      ops.className = 'gm-ops';
+      var bKick = document.createElement('button');
+      bKick.className = 'danger';
+      bKick.textContent = '移出';
+      bKick.onclick = function(){
+        if (!confirm('将「' + m.name + '」移出群聊？')) return;
+        closeModal('groupModal');
+        removeGroupMember(gid, m.uid, '群主移出');
+      };
+      ops.appendChild(bKick);
+      var bRole = document.createElement('button');
+      if (m.role === 'admin') {
+        bRole.textContent = '取消管理';
+        bRole.onclick = function(){
+          m.role = 'member';
+          saveMe(rec);
+          gsyncGroup(gid);
+          notifyRole(gid, m.uid, 'member');
+          openGroupModal(gid);
+        };
+      } else {
+        bRole.textContent = '设为管理';
+        bRole.onclick = function(){
+          m.role = 'admin';
+          saveMe(rec);
+          gsyncGroup(gid);
+          notifyRole(gid, m.uid, 'admin');
+          openGroupModal(gid);
+        };
+      }
+      ops.appendChild(bRole);
+      row.appendChild(ops);
+    } else if (myRole === 'admin' && m.role === 'member' && m.uid !== myUid) {
+      var ops2 = document.createElement('div');
+      ops2.className = 'gm-ops';
+      var bKick2 = document.createElement('button');
+      bKick2.className = 'danger';
+      bKick2.textContent = '移出';
+      bKick2.onclick = function(){
+        if (!confirm('将「' + m.name + '」移出群聊？（管理员权限）')) return;
+        closeModal('groupModal');
+        /* 管理员直接踢：通知本人 + 请求群主更新 */
+        var kick = { t: 'gkick', uid: myUid, gid: gid };
+        ensureConn(m.uid, function(c){ try { c.send(kick); } catch(e) {} }, null);
+        deliverOrQueue(g.owner, gid, { t: 'gkickreq', uid: myUid, gid: gid, target: m.uid }, 0);
+        showToast('已移出，等待群主同步');
+      };
+      ops2.appendChild(bKick2);
+      row.appendChild(ops2);
+    }
+    list.appendChild(row);
+  });
+  $('disbandRow').hidden = (g.owner !== myUid);
+  $('btnGroupLeave').textContent = g.owner === myUid ? '🚪 转让后可退群（当前为群主）' : '🚪 退出群聊';
+  openModal('groupModal');
+}
+function notifyRole(gid, uid, role){
+  deliverOrQueue(uid, gid, { t: 'grole', uid: myUid, gid: gid, role: role }, 0);
+}
+ $('btnGroupLeave').onclick = function(){
+  if (!currentChat || !isGroupKey(currentChat)) return;
+  var rec = meRec();
+  var g = rec.groups[currentChat];
+  if (!g) return;
+  if (g.owner === myUid) { showToast('群主不能直接退群，如需退出请先解散群聊', true); return; }
+  if (!confirm('确定退出群聊「' + g.name + '」？聊天记录将删除。')) return;
+  closeModal('groupModal');
+  var gid = currentChat;
+  deliverOrQueue(g.owner, gid, { t: 'gleave', uid: myUid, gid: gid }, 0);
+  delete rec.groups[gid];
+  delete rec.chats[gid];
+  saveMe(rec);
+  $('chatPane').className = '';
+  currentChat = null;
+  showEmptyChat();
+  renderContacts();
+  showToast('已退出群聊');
+};
+ $('btnGroupDisband').onclick = function(){
+  if (!currentChat || !isGroupKey(currentChat)) return;
+  var rec = meRec();
+  var g = rec.groups[currentChat];
+  if (!g || g.owner !== myUid) return;
+  if (!confirm('确定解散群聊「' + g.name + '」？所有成员的群聊将被移除。')) return;
+  closeModal('groupModal');
+  var gid = currentChat;
+  var payload = { t: 'gdisband', uid: myUid, gid: gid };
+  g.members.forEach(function(m){
+    if (m.uid === myUid) return;
+    deliverOrQueue(m.uid, gid, payload, 0);
+  });
+  delete rec.groups[gid];
+  delete rec.chats[gid];
+  saveMe(rec);
+  $('chatPane').className = '';
+  currentChat = null;
+  showEmptyChat();
+  renderContacts();
+  showToast('群聊已解散');
+};
+
+/* 好友设置 */
+function openFriendModal(uid){
+  var f = meRec().contacts[uid];
   if (!f) return;
   $('fmName').textContent = f.name;
   $('fmUid').textContent = f.uid;
   var av = $('fmAvatar');
-  av.style.background = avatarColor(f.uid);
-  av.textContent = f.name.charAt(0).toUpperCase();
+  av.innerHTML = '';
+  av.style.background = avatarColor(uid);
+  if (f.avatar) {
+    var img = document.createElement('img');
+    img.src = f.avatar;
+    av.appendChild(img);
+  } else {
+    av.textContent = f.name.charAt(0).toUpperCase();
+  }
   openModal('friendModal');
-};
+}
  $('btnClearHistory').onclick = function(){
   if (!currentChat) return;
-  if (!confirm('确定清空与「' + meRec().contacts[currentChat].name + '」的全部聊天记录？（仅清空本机，不影响对方）')) return;
+  var name = chatType === 'group' ? meRec().groups[currentChat].name : meRec().contacts[currentChat].name;
+  if (!confirm('确定清空与「' + name + '」的全部聊天记录？（仅本机）')) return;
   var rec = meRec();
   rec.chats[currentChat] = [];
   saveMe(rec);
@@ -908,13 +1662,12 @@ function nextReq(){
   showToast('聊天记录已清空');
 };
  $('btnDeleteFriend').onclick = function(){
-  if (!currentChat) return;
+  if (!currentChat || chatType !== 'friend') return;
   var uid = currentChat;
   var f = meRec().contacts[uid];
   if (!f) return;
-  if (!confirm('删除「' + f.name + '」后将同时删除聊天记录，\n且对方的好友列表中也会移除你（若对方在线）。确定删除？')) return;
+  if (!confirm('删除「' + f.name + '」后将同时删除聊天记录，\n对方在线时其好友列表也会移除你。确定？')) return;
   closeModal('friendModal');
-  /* 通知对方（在线时同步删除） */
   var c = conns[uid];
   if (c && c.open) {
     try { c.send({ t: 'del', uid: myUid }); } catch(e) {}
@@ -932,9 +1685,9 @@ function nextReq(){
   showToast('已删除 ' + f.name);
 };
 
-/* ═══════════ 好友列表 ═══════════ */
-function lastTs(rec, uid){
-  var ch = rec.chats[uid];
+/* ═══════════ 列表（好友 + 群聊） ═══════════ */
+function lastTs(rec, key){
+  var ch = rec.chats[key];
   if (!ch || !ch.length) return 0;
   return ch[ch.length - 1].ts || 0;
 }
@@ -943,34 +1696,48 @@ function renderContacts(){
   box.innerHTML = '';
   var rec = meRec();
   if (!rec) return;
-  var list = [];
-  for (var uid in rec.contacts) list.push(rec.contacts[uid]);
-  list.sort(function(a, b){ return lastTs(rec, b.uid) - lastTs(rec, a.uid); });
+  var items = [];
+  for (var uid in rec.contacts) items.push({ type:'friend', key:uid, name:rec.contacts[uid].name, avatar:rec.contacts[uid].avatar, sub:uid });
+  for (var gid in rec.groups) items.push({ type:'group', key:gid, name:rec.groups[gid].name, avatar:'', sub:rec.groups[gid].members.length + '人' });
+  items.sort(function(a, b){ return lastTs(rec, b.key) - lastTs(rec, a.key); });
 
-  if (!list.length) {
+  if (!items.length) {
     var empty = document.createElement('div');
     empty.className = 'c-empty';
-    empty.innerHTML = '还没有好友<br>点击上方「添加好友」<br>凭对方的 AzChat ID 添加<br><span style="font-size:11px;color:#B8B8B8">（双方需同时在线）</span>';
+    empty.innerHTML = '还没有好友和群聊<br>用上方「＋ 好友」「👥 群聊」开始<br><span style="font-size:11px;color:#B8B8B8">加好友需双方同时在线</span>';
     box.appendChild(empty);
     return;
   }
-  list.forEach(function(f){
+  items.forEach(function(it){
     var item = document.createElement('div');
-    item.className = 'c-item' + (currentChat === f.uid ? ' on' : '');
-    item.appendChild(avatarEl(f.name, f.uid));
+    item.className = 'c-item' + (currentChat === it.key ? ' on' : '');
+    if (it.type === 'group') {
+      var gav = document.createElement('div');
+      gav.className = 'avatar';
+      gav.style.background = '#5B7A99';
+      gav.textContent = '👥';
+      item.appendChild(gav);
+    } else {
+      item.appendChild(avatarEl(it.name, it.key, false, it.avatar));
+    }
     var info = document.createElement('div');
     info.className = 'c-info';
-    var n = document.createElement('div'); n.className = 'c-name'; n.textContent = f.name;
-    var u = document.createElement('div'); u.className = 'c-uid'; u.textContent = f.uid;
-    info.appendChild(n); info.appendChild(u);
+    var n = document.createElement('div');
+    n.className = 'c-name';
+    n.textContent = it.name;
+    info.appendChild(n);
+    var u = document.createElement('div');
+    u.className = 'c-uid';
+    u.textContent = it.type === 'group' ? ('群聊 · ' + it.sub) : it.sub;
+    info.appendChild(u);
     item.appendChild(info);
-    if (unread[f.uid]) {
+    if (unread[it.key]) {
       var dot = document.createElement('div');
       dot.className = 'c-dot';
-      dot.textContent = unread[f.uid] > 99 ? '99+' : unread[f.uid];
+      dot.textContent = unread[it.key] > 99 ? '99+' : unread[it.key];
       item.appendChild(dot);
     }
-    item.onclick = (function(uid2){ return function(){ openChat(uid2); }; })(f.uid);
+    item.onclick = (function(k){ return function(){ openChat(k); }; })(it.key);
     box.appendChild(item);
   });
 }
@@ -981,21 +1748,28 @@ function showEmptyChat(){
   $('chatBox').hidden = true;
   hideEmojiPanel();
 }
-function openChat(uid){
-  var f = meRec().contacts[uid];
-  if (!f) return;
-  currentChat = uid;
-  unread[uid] = 0;
+function openChat(key){
+  var rec = meRec();
+  var isGroup = !!rec.groups[key];
+  var name;
+  if (isGroup) { name = rec.groups[key].name; chatType = 'group'; }
+  else {
+    if (!rec.contacts[key]) return;
+    name = rec.contacts[key].name;
+    chatType = 'friend';
+  }
+  currentChat = key;
+  unread[key] = 0;
   $('chatEmpty').hidden = true;
   $('chatBox').hidden = false;
   $('chatPane').className = 'open';
-  $('chName').textContent = f.name;
-  $('chUid').textContent = uid;
+  $('chName').textContent = name;
+  $('chUid').textContent = isGroup ? ('群聊 · ' + rec.groups[key].members.length + ' 位成员') : key;
   hideEmojiPanel();
   renderMsgs();
   renderContacts();
   updateChatStatus();
-  ensureConn(uid, null);
+  if (!isGroup) ensureConn(key, null);
   $('msgInput').focus();
 }
  $('btnBack').onclick = function(){
@@ -1004,7 +1778,6 @@ function openChat(uid){
   showEmptyChat();
 };
 
-/* 消息气泡：支持文本（链接可点击）与贴图 */
 function buildBubbleContent(bub, m){
   if (m.img) {
     bub.className += ' has-img';
@@ -1024,11 +1797,10 @@ function buildBubbleContent(bub, m){
   for (var i = 0; i < parts.length; i++) {
     if (!parts[i]) continue;
     if (i % 2 === 1) {
-      /* URL：用 textContent 创建链接，无注入风险 */
       var a = document.createElement('a');
       a.className = 'm-link';
       a.textContent = parts[i];
-      var href = normalizeUrl(parts[i]);
+      var href = /^https?:\/\//i.test(parts[i]) ? parts[i] : ('http://' + parts[i]);
       a.onclick = (function(url){ return function(e){
         e.preventDefault();
         openWebview(url);
@@ -1045,7 +1817,6 @@ function renderMsgs(){
   box.innerHTML = '';
   var rec = meRec();
   var hist = rec.chats[currentChat] || [];
-  var f = rec.contacts[currentChat];
   var lastSeen = 0;
   hist.forEach(function(m){
     if (m.ts - lastSeen > 5 * 60 * 1000) {
@@ -1055,54 +1826,92 @@ function renderMsgs(){
       box.appendChild(div);
     }
     lastSeen = m.ts;
+    var isMe = (m.w === 'me');
     var row = document.createElement('div');
-    row.className = 'm-row ' + (m.w === 'me' ? 'me' : 'them');
-    row.appendChild(avatarEl(m.w === 'me' ? me : f.name, m.w === 'me' ? myUid : currentChat, true));
+    row.className = 'm-row ' + (isMe ? 'me' : 'them');
+    var avKey, avName, avUrl;
+    if (chatType === 'group') {
+      var g = rec.groups[currentChat];
+      var mm = null;
+      var findUid = isMe ? myUid : m.from;
+      if (g) { for (var i = 0; i < g.members.length; i++) { if (g.members[i].uid === findUid) { mm = g.members[i]; break; } } }
+      avName = mm ? mm.name : (m.fromName || '?');
+      avKey = findUid || '?';
+      avUrl = mm ? mm.avatar : '';
+    } else {
+      avName = isMe ? (rec.name || me) : rec.contacts[currentChat].name;
+      avKey = isMe ? myUid : currentChat;
+      avUrl = isMe ? rec.avatar : rec.contacts[currentChat].avatar;
+    }
+    row.appendChild(avatarEl(avName, avKey, true, avUrl));
+    var col = document.createElement('div');
+    col.className = 'm-col';
+    if (!isMe && chatType === 'group') {
+      var sender = document.createElement('div');
+      sender.className = 'm-sender';
+      sender.textContent = m.fromName || avName;
+      col.appendChild(sender);
+    }
     var bub = document.createElement('div');
     bub.className = 'm-bubble';
     buildBubbleContent(bub, m);
-    row.appendChild(bub);
+    if (isMe && m.pending) {
+      var pd = document.createElement('span');
+      pd.className = 'm-pending';
+      pd.title = '对方离线，等对方上线后自动送达';
+      pd.textContent = '⏳待送达';
+      bub.appendChild(pd);
+    }
+    col.appendChild(bub);
+    row.appendChild(col);
     box.appendChild(row);
   });
   box.scrollTop = box.scrollHeight;
 }
 function updateChatStatus(){
   if (!currentChat) return;
+  if (chatType === 'group') {
+    $('chDot').className = 'dot';
+    $('chStatus').textContent = '群聊消息经群主中转';
+    return;
+  }
   var on = conns[currentChat] && conns[currentChat].open;
   $('chDot').className = 'dot' + (on ? ' live' : '');
   $('chStatus').textContent = on ? 'P2P 已连接' : '未连接';
 }
 
-function receiveMsg(uid, msg){
+function receiveMsg(key, msg){
   var rec = meRec();
-  if (!rec.chats[uid]) rec.chats[uid] = [];
-  rec.chats[uid].push(msg);
-  if (rec.chats[uid].length > 300) rec.chats[uid] = rec.chats[uid].slice(-300);
+  if (!rec.chats[key]) rec.chats[key] = [];
+  rec.chats[key].push(msg);
+  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
   saveMe(rec);
-  if (currentChat === uid) renderMsgs();
+  if (currentChat === key) renderMsgs();
   else {
-    unread[uid] = (unread[uid] || 0) + 1;
+    unread[key] = (unread[key] || 0) + 1;
     var preview = msg.img ? '[贴图]' : String(msg.text).slice(0, 20);
-    showToast(rec.contacts[uid].name + '：' + preview);
+    var who = msg.fromName || (rec.contacts[key] ? rec.contacts[key].name : (rec.groups[key] ? rec.groups[key].name : ''));
+    showToast(who + '：' + preview);
   }
   renderContacts();
 }
 
-function ensureConn(uid, cb){
+function ensureConn(uid, cb, onFail){
   var c = conns[uid];
   if (c && c.open) { if (cb) cb(c); return; }
   updateChatStatus();
   if (!peer || !peer.open) {
-    showToast('信令未连接（见侧栏状态），请稍候重试', true);
+    showToast('信令未连接（见侧栏状态）', true);
+    if (onFail) onFail();
     return;
   }
   var nc = peer.connect(peerIdOf(uid), { reliable: true });
   var opened = false;
   var timer = setTimeout(function(){
     if (!opened) {
-      showToast('对方不在线，无法送达。对方需保持页面打开', true);
       try { nc.close(); } catch(e) {}
       updateChatStatus();
+      if (onFail) onFail();
     }
   }, 20000);
   nc.on('open', function(){
@@ -1110,12 +1919,15 @@ function ensureConn(uid, cb){
     clearTimeout(timer);
     conns[uid] = nc;
     updateChatStatus();
+    /* 连接建立即推送我的最新资料 */
+    var rec = meRec();
+    try { nc.send({ t: 'profile', uid: myUid, name: rec.name || me, avatar: rec.avatar || '' }); } catch(e) {}
     if (cb) cb(nc);
   });
   nc.on('error', function(){
     clearTimeout(timer);
-    showToast('对方不在线，无法送达', true);
     updateChatStatus();
+    if (onFail) onFail();
   });
   nc.on('close', function(){
     delete conns[uid];
@@ -1123,24 +1935,40 @@ function ensureConn(uid, cb){
   });
 }
 
+/* 发送文本：单聊直达；群聊发给群主中转；失败进离线队列（⏳） */
 function sendMsg(){
   var input = $('msgInput');
   var text = input.value.replace(/^\s+|\s+$/g, '');
   if (!text || !currentChat) return;
-  var uid = currentChat;
+  var key = currentChat;
   input.value = '';
   var rec = meRec();
-  if (!rec.chats[uid]) rec.chats[uid] = [];
+  if (!rec.chats[key]) rec.chats[key] = [];
   var ts = Date.now();
-  var msg = { w: 'me', text: text, ts: ts };
-  rec.chats[uid].push(msg);
-  if (rec.chats[uid].length > 300) rec.chats[uid] = rec.chats[uid].slice(-300);
+  var msg = { w: 'me', text: text, ts: ts, pending: true };
+  rec.chats[key].push(msg);
+  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
   saveMe(rec);
   renderMsgs();
-  ensureConn(uid, function(c){
-    try { c.send({ t: 'chat', uid: myUid, text: text, ts: ts }); }
-    catch(e) { showToast('发送失败，对方可能已离线', true); }
-  });
+
+  var payload;
+  if (chatType === 'group') {
+    var g = rec.groups[key];
+    if (!g) return;
+    payload = { t: 'gmsg', uid: myUid, name: rec.name || me, text: text, gid: key, ts: ts };
+    deliverOrQueue(g.owner, key, payload, ts);
+    /* 我是群主：直接转发给所有成员 */
+    if (g.owner === myUid) {
+      g.members.forEach(function(m){
+        if (m.uid === myUid) return;
+        deliverOrQueue(m.uid, key, payload, 0);
+      });
+      markSent(key, ts);
+    }
+  } else {
+    payload = { t: 'chat', uid: myUid, text: text, ts: ts };
+    deliverOrQueue(key, key, payload, ts);
+  }
 }
  $('btnSend').onclick = sendMsg;
  $('msgInput').onkeydown = function(e){
@@ -1171,7 +1999,6 @@ function setEpTab(t){
  $('epTabEmoji').onclick = function(){ setEpTab('emoji'); };
  $('epTabSticker').onclick = function(){ setEpTab('sticker'); };
 
-/* Emoji 网格（已修复：补上自执行函数开头） */
 (function(){
   var grid = $('epEmoji');
   EMOJIS.forEach(function(em){
@@ -1186,11 +2013,11 @@ function setEpTab(t){
   });
 })();
 
-/* 贴图收藏与发送 */
 function renderStickerGrid(){
   var grid = $('epSticker');
   grid.innerHTML = '';
   var rec = meRec();
+  if (!rec) return;
   var stickers = rec.stickers || [];
   stickers.forEach(function(dataUrl, idx){
     var img = document.createElement('img');
@@ -1199,7 +2026,7 @@ function renderStickerGrid(){
     img.title = '点击发送 / 右键删除';
     img.oncontextmenu = function(e){
       e.preventDefault();
-      if (confirm('从我的贴图收藏中删除这张？')) {
+      if (confirm('从贴图收藏中删除这张？')) {
         rec.stickers.splice(idx, 1);
         saveMe(rec);
         renderStickerGrid();
@@ -1212,19 +2039,19 @@ function renderStickerGrid(){
   add.type = 'button';
   add.className = 'sticker-add';
   add.textContent = '＋';
-  add.title = '添加贴图（自动压缩；右键贴图可删除）';
+  add.title = '添加贴图（右键贴图可删除）';
   add.onclick = function(){ $('stickerFile').click(); };
   grid.appendChild(add);
 }
  $('stickerFile').onchange = function(){
   var f = this.files[0];
   if (!f) return;
-  if (f.size > 8 * 1024 * 1024) { showToast('图片太大，请选择 8MB 以内的图片', true); this.value=''; return; }
-  compressImage(f, function(dataUrl, err){
+  if (f.size > 8 * 1024 * 1024) { showToast('图片太大，请选 8MB 以内', true); this.value=''; return; }
+  compressImage(f, 240, function(dataUrl, err){
     if (err) { showToast('图片处理失败：' + err, true); return; }
     var rec = meRec();
     if (!rec.stickers) rec.stickers = [];
-    if (rec.stickers.length >= 18) { showToast('贴图收藏已满（18 张），右键删除一些再添加', true); return; }
+    if (rec.stickers.length >= 18) { showToast('贴图收藏已满（18 张）', true); return; }
     rec.stickers.push(dataUrl);
     saveMe(rec);
     renderStickerGrid();
@@ -1232,16 +2059,14 @@ function renderStickerGrid(){
   });
   this.value = '';
 };
-/* 图片压缩到 240px 内 */
-function compressImage(file, cb){
+function compressImage(file, maxPx, cb){
   var reader = new FileReader();
   reader.onload = function(){
     var img = new Image();
     img.onload = function(){
       try {
-        var MAX = 240;
         var w = img.width, h = img.height;
-        var scale = Math.min(1, MAX / Math.max(w, h));
+        var scale = Math.min(1, maxPx / Math.max(w, h));
         var cv = document.createElement('canvas');
         cv.width = Math.round(w * scale);
         cv.height = Math.round(h * scale);
@@ -1263,26 +2088,36 @@ function compressImage(file, cb){
 }
 function sendSticker(dataUrl){
   if (!currentChat) return;
-  var uid = currentChat;
-  var ts = Date.now();
+  var key = currentChat;
   var rec = meRec();
-  if (!rec.chats[uid]) rec.chats[uid] = [];
-  var msg = { w: 'me', img: dataUrl, ts: ts };
-  rec.chats[uid].push(msg);
-  if (rec.chats[uid].length > 300) rec.chats[uid] = rec.chats[uid].slice(-300);
+  if (!rec.chats[key]) rec.chats[key] = [];
+  var ts = Date.now();
+  var msg = { w: 'me', img: dataUrl, ts: ts, pending: true };
+  rec.chats[key].push(msg);
+  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
   saveMe(rec);
   renderMsgs();
   hideEmojiPanel();
-  ensureConn(uid, function(c){
-    try { c.send({ t: 'sticker', uid: myUid, img: dataUrl, ts: ts }); }
-    catch(e) { showToast('发送失败，对方可能已离线', true); }
-  });
+  if (chatType === 'group') {
+    var g = rec.groups[key];
+    if (!g) return;
+    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, img: dataUrl, gid: key, ts: ts };
+    deliverOrQueue(g.owner, key, payload, ts);
+    if (g.owner === myUid) {
+      g.members.forEach(function(m){
+        if (m.uid === myUid) return;
+        deliverOrQueue(m.uid, key, payload, 0);
+      });
+      markSent(key, ts);
+    }
+  } else {
+    deliverOrQueue(key, key, { t: 'sticker', uid: myUid, img: dataUrl, ts: ts }, ts);
+  }
 }
 
-/* ═══════════ 图片查看器 ═══════════ */
+/* ═══════════ 图片查看 / 内置浏览器 ═══════════ */
  $('imgViewer').onclick = function(){ this.hidden = true; };
 
-/* ═══════════ 内置浏览器（仿微信） ═══════════ */
 function openWebview(url){
   $('wvTitle').textContent = domainOf(url);
   $('wvUrl').textContent = url;
@@ -1305,7 +2140,6 @@ function openWebview(url){
   }
 };
 
-/* 弹窗关闭按钮 */
 var closeBtns = document.querySelectorAll('.modal-close');
 for (var i = 0; i < closeBtns.length; i++) {
   (function(btn){
@@ -1316,7 +2150,7 @@ for (var i = 0; i < closeBtns.length; i++) {
 /* ═══════════ 备份 / 导入 ═══════════ */
  $('btnBackup').onclick = function(){
   try {
-    var data = { app: 'azchat', ver: 1, db: storage.getItem(DB_KEY) };
+    var data = { app: 'azchat', ver: 2, db: storage.getItem(DB_KEY) };
     var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
@@ -1326,7 +2160,7 @@ for (var i = 0; i < closeBtns.length; i++) {
     a.click();
     document.body.removeChild(a);
     setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
-    showToast('备份文件已开始下载，请查看浏览器下载列表');
+    showToast('备份文件已开始下载');
   } catch(e) {
     showToast('备份失败：' + e.message, true);
   }
@@ -1344,9 +2178,15 @@ for (var i = 0; i < closeBtns.length; i++) {
       var cur = JSON.parse(storage.getItem(DB_KEY) || '{}');
       var back = JSON.parse(data.db);
       var count = 0;
-      for (var n in back) { cur[n] = back[n]; count++; }
+      for (var n in back) {
+        if (!back[n].groups) back[n].groups = {};
+        if (!back[n].outbox) back[n].outbox = [];
+        if (!back[n].name) back[n].name = n;
+        cur[n] = back[n];
+        count++;
+      }
       storage.setItem(DB_KEY, JSON.stringify(cur));
-      showToast('导入成功，共 ' + count + ' 个账号（首次登录需重输密码）');
+      showToast('导入成功，共 ' + count + ' 个账号');
     } catch(e) {
       showToast('导入失败：' + e.message, true);
     }
