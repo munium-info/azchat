@@ -106,7 +106,7 @@
     display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
   .m-bubble{padding:10px 13px;border-radius:8px;font-size:14.5px;line-height:1.55;
     white-space:pre-wrap;word-break:break-word}
-  .m-bubble.has-img{padding:5px;background:#fff}
+  .m-bubble.has-img{padding:5px;background:#fff;white-space:normal}
   .m-bubble img{max-width:160px;max-height:160px;border-radius:5px;display:block;cursor:zoom-in}
   .them .m-bubble{background:#fff}
   .me .m-bubble{background:var(--bubble)}
@@ -167,7 +167,6 @@
   .mbtn{flex:1;padding:11px;border-radius:8px;font-size:14px;font-weight:500}
   .mbtn.gray{background:#F0F0F0;color:var(--ink)}
   .mbtn.green{background:var(--green);color:#fff}
-  .mbtn.red{background:var(--unread);color:#fff}
   .modal-close{float:right;color:var(--sub);font-size:20px;line-height:1;padding:2px 4px}
   .modal-close:hover{color:var(--ink)}
   .fm-info{display:flex;align-items:center;gap:12px;margin-bottom:18px}
@@ -279,7 +278,7 @@
         </div>
         <div class="composer">
           <button type="button" class="btn-emoji" id="btnEmoji" title="表情">😊</button>
-          <input id="msgInput" type="text" placeholder="输入消息，粘贴的链接可直接在内置浏览器打开…" maxlength="2000">
+          <input id="msgInput" type="text" placeholder="输入消息，链接可在内置浏览器打开…" maxlength="2000">
           <button type="button" class="btn-send" id="btnSend">发送</button>
         </div>
       </div>
@@ -519,7 +518,6 @@ function copyText(text, okMsg){
 }
 /* URL 检测 */
 var URL_RE = /(https?:\/\/[^\s<>"'）】」》。，、！？；：]+)/;
-function isUrl(s){ return URL_RE.test(s); }
 function domainOf(u){
   try { var a = document.createElement('a'); a.href = u; return a.hostname; }
   catch(e){ return u; }
@@ -547,7 +545,7 @@ function findNameByUid(uid){
 var me = null, myUid = null, peer = null;
 var conns = {}, unread = {}, currentChat = null;
 
-/* ═══════════ 启动 ═══════════ */
+/* ═══════════ 启动：有会话直接进入聊天 ═══════════ */
 (function(){
   try {
     var u = storage.getItem(SES_KEY);
@@ -652,7 +650,7 @@ function enterApp(name){
 
  $('btnCopyUid').onclick = function(){ copyText(myUid, '已复制我的 ID：' + myUid); };
 
-/* ═══════════ PeerJS 加载 ═══════════ */
+/* ═══════════ PeerJS 加载（双 CDN 兜底） ═══════════ */
 var PEER_CDNS = [
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
@@ -684,7 +682,7 @@ function setNet(state){
   }
 }
 
-/* ═══════════ Peer 层（多 STUN + TURN 兜底） ═══════════ */
+/* ═══════════ Peer 层（多 STUN + TURN 中继兜底） ═══════════ */
 function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
 function peerOpts(){
   return {
@@ -749,15 +747,15 @@ function bindIncoming(c){
       var uid = String(d.uid);
       if (d.t === 'add') { handleAddReq(c, uid, d.name); return; }
       var rec = meRec();
-      if (!rec || !rec.contacts[uid]) return;
+      if (!rec || !rec.contacts[uid]) return;   // 非好友消息一律丢弃
       if (!conns[uid]) { conns[uid] = c; updateChatStatus(); }
       if (d.t === 'chat' && typeof d.text === 'string') {
         receiveMsg(uid, { w:'them', text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
       } else if (d.t === 'sticker' && typeof d.img === 'string' && d.img.indexOf('data:image/') === 0) {
-        if (d.img.length > 500000) return;  // 贴图上限 500KB
+        if (d.img.length > 500000) return;      // 贴图上限 500KB
         receiveMsg(uid, { w:'them', img:d.img, ts:d.ts||Date.now() });
       } else if (d.t === 'del') {
-        /* 对方把你删了：本地同步移除（微信式单向无提示，这里给个轻提示） */
+        /* 对方把你删了：本地同步移除 */
         if (rec.contacts[uid]) {
           var nm = rec.contacts[uid].name;
           delete rec.contacts[uid];
@@ -916,7 +914,7 @@ function nextReq(){
   if (!f) return;
   if (!confirm('删除「' + f.name + '」后将同时删除聊天记录，\n且对方的好友列表中也会移除你（若对方在线）。确定删除？')) return;
   closeModal('friendModal');
-  /* 通知对方（在线时同步删除，微信式） */
+  /* 通知对方（在线时同步删除） */
   var c = conns[uid];
   if (c && c.open) {
     try { c.send({ t: 'del', uid: myUid }); } catch(e) {}
@@ -1026,7 +1024,7 @@ function buildBubbleContent(bub, m){
   for (var i = 0; i < parts.length; i++) {
     if (!parts[i]) continue;
     if (i % 2 === 1) {
-      /* 是 URL：安全地创建可点击链接（用 textContent，无注入风险） */
+      /* URL：用 textContent 创建链接，无注入风险 */
       var a = document.createElement('a');
       a.className = 'm-link';
       a.textContent = parts[i];
@@ -1079,7 +1077,6 @@ function receiveMsg(uid, msg){
   var rec = meRec();
   if (!rec.chats[uid]) rec.chats[uid] = [];
   rec.chats[uid].push(msg);
-  /* 限制每会话最多 300 条，防止 localStorage 爆满 */
   if (rec.chats[uid].length > 300) rec.chats[uid] = rec.chats[uid].slice(-300);
   saveMe(rec);
   if (currentChat === uid) renderMsgs();
@@ -1151,7 +1148,7 @@ function sendMsg(){
 };
 
 /* ═══════════ 表情 & 贴图 ═══════════ */
-var EMOJIS = ('😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😜 🤪 🤗 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 😯 😴 😌 😔 😕 🙃 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 😳 🤢 🤮 😷 🤒 🤕 🤑 🤠 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👏 🙌 🤝 💪 🙏 ❤️ 💔 💯 💢 💥 💧 ✨ 🎉 🎁 🌹 🌹 🍉 🍓 🍺 ☕ 🐶 🐱 🐼 🌙 ⭐ 🔥 ⚡ 🌈').split(/\s+/);
+var EMOJIS = ('😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😜 🤪 🤗 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 😯 😴 😌 😔 😕 🙃 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 😳 🤢 🤮 😷 🤒 🤕 🤑 🤠 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👏 🙌 🤝 💪 🙏 ❤️ 💔 💯 💢 💥 💧 ✨ 🎉 🎁 🌹 🍉 🍓 🍺 ☕ 🐶 🐱 🐼 🌙 ⭐ 🔥 ⚡ 🌈').split(/\s+/);
 var epTab = 'emoji';
 
 function hideEmojiPanel(){
@@ -1174,7 +1171,8 @@ function setEpTab(t){
  $('epTabEmoji').onclick = function(){ setEpTab('emoji'); };
  $('epTabSticker').onclick = function(){ setEpTab('sticker'); };
 
-/* Emoji 网格 */
+/* Emoji 网格（已修复：补上自执行函数开头） */
+(function(){
   var grid = $('epEmoji');
   EMOJIS.forEach(function(em){
     var b = document.createElement('button');
@@ -1188,7 +1186,7 @@ function setEpTab(t){
   });
 })();
 
-/* 贴图 */
+/* 贴图收藏与发送 */
 function renderStickerGrid(){
   var grid = $('epSticker');
   grid.innerHTML = '';
@@ -1214,7 +1212,7 @@ function renderStickerGrid(){
   add.type = 'button';
   add.className = 'sticker-add';
   add.textContent = '＋';
-  add.title = '添加贴图（图片自动压缩；右键贴图可删除）';
+  add.title = '添加贴图（自动压缩；右键贴图可删除）';
   add.onclick = function(){ $('stickerFile').click(); };
   grid.appendChild(add);
 }
@@ -1234,7 +1232,7 @@ function renderStickerGrid(){
   });
   this.value = '';
 };
-/* 图片压缩到 240px 内，控制在传输与存储可承受范围 */
+/* 图片压缩到 240px 内 */
 function compressImage(file, cb){
   var reader = new FileReader();
   reader.onload = function(){
