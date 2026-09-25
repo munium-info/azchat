@@ -57,6 +57,7 @@
     display:flex;flex-direction:column;flex-shrink:0}
   .sb-head{padding:16px 16px 12px;display:flex;align-items:center;gap:10px}
   .sb-head b{font-size:15px}
+  .net-status{padding:0 16px 10px;font-size:12px;color:var(--sub);line-height:1.5}
   .sb-id{padding:0 16px 12px}
   .id-chip{background:#F6F6F6;border-radius:7px;padding:7px 10px;display:flex;
     align-items:center;justify-content:space-between;gap:8px}
@@ -177,7 +178,12 @@
 <!-- ═══════ 主界面 ═══════ -->
 <div id="appView" hidden>
   <aside id="sidebar">
-    <div class="sb-head"><div class="logo-sm" style="width:34px;height:34px;border-radius:8px;background:var(--green);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center">A</div><b>AzChat</b></div>
+    <div class="sb-head">
+      <div style="width:34px;height:34px;border-radius:8px;background:var(--green);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center">A</div>
+      <b>AzChat</b>
+    </div>
+    <!-- 信令连接状态指示 -->
+    <div class="net-status" id="netStatus">● 正在连接信令服务器…</div>
     <div class="sb-id">
       <div class="id-chip">
         <code id="myUid">—</code>
@@ -190,7 +196,7 @@
     <div class="sb-foot">
       <button type="button" id="btnBackup">备份</button>
       <button type="button" id="btnImport">导入</button>
-      <button type="button" id="btnLogout">退出登录</button>
+      <button type="button" id="btnLogout">退出</button>
     </div>
   </aside>
 
@@ -252,6 +258,7 @@
 
 <input type="file" id="importFile" accept=".json,application/json" style="display:none">
 
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* ═══════════ 全局错误显示 ═══════════ */
 window.onerror = function(msg, src, line){
@@ -371,7 +378,7 @@ function showToast(msg, isErr){
   el.textContent = msg;
   el.className = 'show' + (isErr ? ' err' : '');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(function(){ el.className = ''; }, isErr ? 5000 : 2600);
+  toastTimer = setTimeout(function(){ el.className = ''; }, isErr ? 6000 : 2600);
 }
 function two(n){ return n < 10 ? '0'+n : ''+n; }
 function timeStr(ts){
@@ -427,13 +434,13 @@ function findNameByUid(uid){
 var me = null, myUid = null, peer = null;
 var conns = {}, unread = {}, currentChat = null;
 
-/* ═══════════ 启动：有会话直接进入，不显示任何登录内容 ═══════════ */
+/* ═══════════ 启动：有会话直接进入聊天 ═══════════ */
 (function(){
   try {
     var u = storage.getItem(SES_KEY);
     if (u && loadDB()[u]) { enterApp(u); return; }
   } catch(e) {}
-  $('authView').hidden = false;   // 没有会话才显示登录页
+  $('authView').hidden = false;
 })();
 
 /* ═══════════ 登录 / 注册 ═══════════ */
@@ -483,7 +490,7 @@ function setMode(r){
       if (!m) { err.textContent = '请输入完整的 ID，格式为 AZ + 8 位字符'; return; }
       var loginUid = 'AZ' + m[1];
       var loginName = findNameByUid(loginUid);
-      if (!loginName) { err.textContent = '该 ID 未在本机注册过，请先注册'; return; }
+      if (!loginName) { err.textContent = '该 ID 未在本机注册过，请先注册（或从原设备备份后在本机导入）'; return; }
       var r2 = db[loginName];
       if (sha256(r2.salt + pass) !== r2.hash) { err.textContent = '密码错误'; return; }
       if ($('fRemember').checked) {
@@ -509,13 +516,13 @@ function enterApp(name){
   unread = {}; currentChat = null; conns = {};
   showEmptyChat();
   renderContacts();
+  setNet('off');
   ensurePeerJS(function(ok){
-    if (!ok) { showToast('无法加载 P2P 组件（PeerJS），请检查网络后刷新', true); return; }
+    if (!ok) { setNet('err'); showToast('无法加载 P2P 组件（PeerJS），请检查网络后刷新', true); return; }
     startPeer();
   });
 }
 
-/* 退出登录 = 清除会话，下次打开需要重新输入 ID 密码 */
  $('btnLogout').onclick = function(){
   if (!confirm('退出后下次打开需要重新输入 ID 和密码，确定退出？')) return;
   if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
@@ -529,9 +536,8 @@ function enterApp(name){
 
  $('btnCopyUid').onclick = function(){ copyText(myUid, '已复制我的 ID：' + myUid); };
 
-/* ═══════════ PeerJS 加载（三 CDN 自动切换） ═══════════ */
+/* ═══════════ PeerJS 加载（内置 + 双 CDN 兜底） ═══════════ */
 var PEER_CDNS = [
-  'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
 ];
@@ -549,19 +555,65 @@ function ensurePeerJS(cb){
   tryNext();
 }
 
-/* ═══════════ Peer 层 ═══════════ */
+/* ═══════════ 信令状态指示 ═══════════ */
+function setNet(state){
+  var el = $('netStatus');
+  if (!el) return;
+  if (state === 'on') {
+    el.innerHTML = '<span style="color:var(--green)">● 已连接信令服务器</span>，可加好友 / 收发消息';
+  } else if (state === 'err') {
+    el.innerHTML = '<span style="color:var(--unread)">● 信令连不上！</span>你的网络受限，请换网络（如手机热点）后刷新重试';
+  } else {
+    el.innerHTML = '<span style="color:#C8A415">● 正在连接信令服务器…</span>';
+  }
+}
+
+/* ═══════════ Peer 层（多 STUN 提升穿透率 + 自动重连） ═══════════ */
 function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
+function peerOpts(){
+  return {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' },
+        { urls: 'stun:stun.miwifi.com:3478' }
+      ]
+    }
+  };
+}
 function startPeer(){
   if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
-  peer = new Peer(peerIdOf(myUid));
-  peer.on('open', function(){ updateChatStatus(); });
+  setNet('off');
+  var opened = false;
+  peer = new Peer(peerIdOf(myUid), peerOpts());
+  /* 12 秒连不上信令就明确报错，避免无限等待 */
+  setTimeout(function(){
+    if (!opened) { setNet('err'); showToast('连接信令服务器超时，请检查网络（可尝试手机热点）', true); }
+  }, 12000);
+  peer.on('open', function(){
+    opened = true;
+    setNet('on');
+    updateChatStatus();
+  });
   peer.on('connection', bindIncoming);
-  peer.on('disconnected', function(){ try { peer.reconnect(); } catch(e) {} });
+  peer.on('disconnected', function(){
+    setNet('off');
+    try { peer.reconnect(); } catch(e) {}
+  });
   peer.on('error', function(e){
-    if (e && e.type === 'unavailable-id') {
+    var t = e && e.type;
+    if (t === 'unavailable-id') {
       showToast('该账号已在其他窗口登录，本窗口以临时身份运行', true);
-      peer = new Peer(peerIdOf(myUid) + '-' + randHex(2));
+      peer = new Peer(peerIdOf(myUid) + '-' + randHex(2), peerOpts());
       peer.on('connection', bindIncoming);
+      peer.on('disconnected', function(){ try { peer.reconnect(); } catch(e2) {} });
+    } else if (t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') {
+      setNet('err');
+      /* 30 秒后自动重试一次 */
+      setTimeout(function(){
+        if (peer && !peer.open && me) { try { peer.reconnect(); } catch(e2) {} }
+      }, 30000);
     }
   });
 }
@@ -573,7 +625,7 @@ function bindIncoming(c){
       var uid = String(d.uid);
       if (d.t === 'add') { handleAddReq(c, uid, d.name); return; }
       var rec = meRec();
-      if (!rec || !rec.contacts[uid]) return;
+      if (!rec || !rec.contacts[uid]) return;   // 非好友消息一律丢弃
       if (!conns[uid]) { conns[uid] = c; updateChatStatus(); }
       if (d.t === 'chat' && typeof d.text === 'string') {
         receiveMsg(uid, String(d.text).slice(0, 2000), d.ts || Date.now());
@@ -590,6 +642,10 @@ function bindIncoming(c){
  $('btnAddFriend').onclick = function(){
   $('addErr').textContent = '';
   $('addInput').value = '';
+  if (peer && !peer.open) {
+    showToast('你的页面还没连上信令服务器，请看侧栏状态提示，连上后再试', true);
+    return;
+  }
   openModal('addModal');
   $('addInput').focus();
 };
@@ -606,43 +662,47 @@ function bindIncoming(c){
   var uid = 'AZ' + m[1];
   if (uid === myUid) { err.textContent = '这是你自己的 ID 呀'; return; }
   if (meRec().contacts[uid]) { err.textContent = '对方已在你的好友列表中'; return; }
+  if (!peer || !peer.open) {
+    err.textContent = '你的页面未连上信令服务器（见侧栏提示），无法发起请求';
+    return;
+  }
   err.textContent = '';
   closeModal('addModal');
   sendAddReq(uid);
 };
 
 function sendAddReq(uid){
-  if (typeof Peer === 'undefined') { showToast('P2P 组件未就绪，请稍候重试', true); return; }
   showToast('正在寻找对方…');
-  var tmp = new Peer();
+  /* 用主 peer 发起（已在 startPeer 中配置好 ICE），失败单独提示 */
+  var c = peer.connect(peerIdOf(uid), { reliable: true });
   var done = false;
-  function finish(){ if (!done) { done = true; try { tmp.destroy(); } catch(e) {} } }
+  function finish(){
+    if (done) return;
+    done = true;
+    try { c.close(); } catch(e) {}
+  }
   var timer = setTimeout(function(){
-    if (!done) { showToast('对方不在线或 ID 不存在', true); finish(); }
-  }, 10000);
-  tmp.on('open', function(){
-    var c = tmp.connect(peerIdOf(uid), { reliable: true });
-    c.on('open', function(){ c.send({ t: 'add', uid: myUid, name: me }); });
-    c.on('data', function(d){
-      clearTimeout(timer); finish();
-      if (d && d.t === 'addok') {
-        var rec = meRec();
-        rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16) };
-        saveMe(rec);
-        renderContacts();
-        showToast('已添加 ' + rec.contacts[uid].name);
-      } else {
-        showToast('对方拒绝了你的好友请求', true);
-      }
-    });
-    c.on('error', function(){
-      clearTimeout(timer);
-      if (!done) { showToast('连接失败，请稍后重试', true); finish(); }
-    });
+    if (!done) {
+      showToast('对方不在线或 ID 不存在。注意：对方必须在自己的设备上注册，并保持页面打开', true);
+      finish();
+    }
+  }, 12000);
+  c.on('open', function(){ c.send({ t: 'add', uid: myUid, name: me }); });
+  c.on('data', function(d){
+    clearTimeout(timer); finish();
+    if (d && d.t === 'addok') {
+      var rec = meRec();
+      rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16) };
+      saveMe(rec);
+      renderContacts();
+      showToast('已添加 ' + rec.contacts[uid].name + '，开始聊天吧');
+    } else {
+      showToast('对方拒绝了你的好友请求', true);
+    }
   });
-  tmp.on('error', function(){
+  c.on('error', function(){
     clearTimeout(timer);
-    if (!done) { showToast('对方不在线或 ID 不存在', true); finish(); }
+    if (!done) { showToast('连接失败，请稍后重试', true); finish(); }
   });
 }
 
@@ -706,7 +766,7 @@ function renderContacts(){
   if (!list.length) {
     var empty = document.createElement('div');
     empty.className = 'c-empty';
-    empty.innerHTML = '还没有好友<br>点击上方「添加好友」<br>凭对方的 AzChat ID 添加';
+    empty.innerHTML = '还没有好友<br>点击上方「添加好友」<br>凭对方的 AzChat ID 添加<br><span style="font-size:11px;color:#B8B8B8">（双方需同时在线）</span>';
     box.appendChild(empty);
     return;
   }
@@ -805,16 +865,19 @@ function ensureConn(uid, cb){
   var c = conns[uid];
   if (c && c.open) { if (cb) cb(c); return; }
   updateChatStatus();
-  if (!peer || !peer.open) { showToast('连接服务未就绪，请稍候重试', true); return; }
+  if (!peer || !peer.open) {
+    showToast('信令未连接（见侧栏状态），请稍候重试', true);
+    return;
+  }
   var nc = peer.connect(peerIdOf(uid), { reliable: true });
   var opened = false;
   var timer = setTimeout(function(){
     if (!opened) {
-      showToast('对方不在线，无法送达', true);
+      showToast('对方不在线，无法送达。对方需保持页面打开', true);
       try { nc.close(); } catch(e) {}
       updateChatStatus();
     }
-  }, 10000);
+  }, 12000);
   nc.on('open', function(){
     opened = true;
     clearTimeout(timer);
@@ -862,7 +925,7 @@ for (var i = 0; i < closeBtns.length; i++) {
   })(closeBtns[i]);
 }
 
-/* ═══════════ 备份 / 导入（带下载失败提示） ═══════════ */
+/* ═══════════ 备份 / 导入 ═══════════ */
  $('btnBackup').onclick = function(){
   try {
     var data = { app: 'azchat', ver: 1, db: storage.getItem(DB_KEY) };
