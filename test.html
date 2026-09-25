@@ -19,14 +19,14 @@
   input{font-family:inherit;outline:none}
   [hidden]{display:none !important}
 
-  #toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-80px);z-index:300;
+  #toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-80px);z-index:600;
     background:#3A3A3A;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;
     box-shadow:0 6px 20px rgba(0,0,0,.18);transition:transform .3s;
     pointer-events:none;max-width:88vw;text-align:center;word-break:break-all}
   #toast.show{transform:translate(-50%,0)}
   #toast.err{background:#C0392B}
 
-  /* ══ 登录/注册（仅首次或退出后可见） ══ */
+  /* ══ 登录/注册 ══ */
   #authView{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px}
   .logo{width:64px;height:64px;border-radius:16px;background:var(--green);display:flex;
     align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:700}
@@ -93,6 +93,8 @@
   .ch-name{font-size:16px;font-weight:600}
   .ch-uid{font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace;margin-top:2px}
   .ch-status{margin-left:auto;font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px}
+  .btn-more{width:30px;height:30px;color:var(--sub);font-size:18px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+  .btn-more:hover{background:#EAEAEA;color:var(--ink)}
   .dot{width:7px;height:7px;border-radius:50%;background:#C4C4C4}
   .dot.live{background:var(--green)}
   #msgs{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
@@ -104,14 +106,58 @@
     display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
   .m-bubble{padding:10px 13px;border-radius:8px;font-size:14.5px;line-height:1.55;
     white-space:pre-wrap;word-break:break-word}
+  .m-bubble.has-img{padding:5px;background:#fff}
+  .m-bubble img{max-width:160px;max-height:160px;border-radius:5px;display:block;cursor:zoom-in}
   .them .m-bubble{background:#fff}
   .me .m-bubble{background:var(--bubble)}
-  .composer{display:flex;gap:10px;padding:14px 18px;background:#F7F7F7;border-top:1px solid var(--line)}
+  .me .m-bubble.has-img{background:#fff}
+  .m-link{color:#576B95;text-decoration:none;cursor:pointer;word-break:break-all}
+  .m-link:hover{text-decoration:underline}
+
+  /* ══ 表情面板 ══ */
+  .composer-wrap{background:#F7F7F7;border-top:1px solid var(--line)}
+  #emojiPanel{background:#F7F7F7;border-top:1px solid var(--line);padding:10px 14px;max-height:220px;overflow-y:auto}
+  .ep-tabs{display:flex;gap:16px;margin-bottom:10px;font-size:13px}
+  .ep-tabs button{color:var(--sub);padding:2px 4px;border-radius:5px}
+  .ep-tabs button.on{color:var(--ink);font-weight:600;background:#EAEAEA}
+  .emoji-grid{display:flex;flex-wrap:wrap;gap:2px}
+  .emoji-grid button{width:34px;height:34px;font-size:22px;border-radius:6px;line-height:1}
+  .emoji-grid button:hover{background:#E8E8E8}
+  .sticker-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .sticker-grid .stk{width:56px;height:56px;border-radius:8px;background:#fff;border:1px solid var(--line);
+    padding:3px;cursor:pointer;object-fit:contain}
+  .sticker-grid .stk:hover{border-color:var(--green)}
+  .sticker-add{width:56px;height:56px;border-radius:8px;border:1px dashed #C4C4C4;color:var(--sub);
+    font-size:22px;display:flex;align-items:center;justify-content:center;background:#fff}
+  .sticker-add:hover{border-color:var(--green);color:var(--green)}
+  .composer{display:flex;gap:10px;padding:12px 18px 14px;align-items:center}
+  .btn-emoji{width:36px;height:40px;font-size:22px;display:flex;align-items:center;justify-content:center;
+    border-radius:8px;flex-shrink:0}
+  .btn-emoji:hover{background:#EAEAEA}
+  .btn-emoji.on{background:#E0E0E0}
   .composer input{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:14px;background:#fff}
   .composer input:focus{border-color:var(--green)}
-  .btn-send{background:var(--green);color:#fff;border-radius:8px;padding:0 22px;font-size:14px;font-weight:500}
+  .btn-send{background:var(--green);color:#fff;border-radius:8px;padding:0 22px;font-size:14px;font-weight:500;
+    height:42px;flex-shrink:0}
 
-  .mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;
+  /* ══ 内置浏览器（仿微信） ══ */
+  #webview{position:fixed;inset:0;background:#fff;z-index:500;display:flex;flex-direction:column}
+  .wv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F7F7F7;border-bottom:1px solid var(--line)}
+  .wv-bar button{color:#576B95;font-size:14px;padding:6px 10px;border-radius:6px}
+  .wv-bar button:hover{background:#EAEAEA}
+  .wv-title{flex:1;text-align:center;font-size:14.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wv-url{font-size:11px;color:var(--sub);text-align:center;padding:4px;background:#FFFBE6;
+    font-family:ui-monospace,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wv-hint{font-size:11px;color:#B08A2E;text-align:center;padding:4px;background:#FFF8E1;line-height:1.5}
+  #wvFrame{flex:1;width:100%;border:none;background:#fff}
+
+  /* ══ 图片查看器 ══ */
+  #imgViewer{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:550;
+    display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+  #imgViewer img{max-width:92vw;max-height:88vh;border-radius:8px}
+
+  /* ══ 弹窗 ══ */
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;display:flex;
     align-items:center;justify-content:center;padding:20px}
   .modal{background:#fff;border-radius:12px;width:100%;max-width:340px;padding:22px}
   .modal h3{font-size:16px;margin-bottom:16px;font-weight:600}
@@ -121,8 +167,14 @@
   .mbtn{flex:1;padding:11px;border-radius:8px;font-size:14px;font-weight:500}
   .mbtn.gray{background:#F0F0F0;color:var(--ink)}
   .mbtn.green{background:var(--green);color:#fff}
+  .mbtn.red{background:var(--unread);color:#fff}
   .modal-close{float:right;color:var(--sub);font-size:20px;line-height:1;padding:2px 4px}
   .modal-close:hover{color:var(--ink)}
+  .fm-info{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .fm-item{border-top:1px solid var(--line)}
+  .fm-item button{width:100%;text-align:left;padding:13px 4px;font-size:14.5px;color:var(--ink)}
+  .fm-item button.danger{color:var(--unread)}
+  .fm-item button:hover{background:#FAFAFA}
 
   @media (max-width:680px){
     #sidebar{width:100%;border-right:none}
@@ -136,7 +188,7 @@
 
 <div id="toast"></div>
 
-<!-- ═══════ 登录 / 注册（仅首次或退出后显示） ═══════ -->
+<!-- ═══════ 登录 / 注册 ═══════ -->
 <main id="authView" hidden>
   <div class="logo">A</div>
   <div class="auth-title">AzChat</div>
@@ -182,7 +234,6 @@
       <div style="width:34px;height:34px;border-radius:8px;background:var(--green);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center">A</div>
       <b>AzChat</b>
     </div>
-    <!-- 信令连接状态指示 -->
     <div class="net-status" id="netStatus">● 正在连接信令服务器…</div>
     <div class="sb-id">
       <div class="id-chip">
@@ -213,15 +264,44 @@
           <div class="ch-uid" id="chUid"></div>
         </div>
         <div class="ch-status"><span class="dot" id="chDot"></span><span id="chStatus">未连接</span></div>
+        <button type="button" class="btn-more" id="btnMore" title="聊天设置">⋯</button>
       </div>
       <div id="msgs"></div>
-      <div class="composer">
-        <input id="msgInput" type="text" placeholder="输入消息…" maxlength="2000">
-        <button type="button" class="btn-send" id="btnSend">发送</button>
+      <div class="composer-wrap">
+        <!-- 表情面板 -->
+        <div id="emojiPanel" hidden>
+          <div class="ep-tabs">
+            <button type="button" id="epTabEmoji" class="on">😊 Emoji</button>
+            <button type="button" id="epTabSticker">🖼 贴图</button>
+          </div>
+          <div id="epEmoji" class="emoji-grid"></div>
+          <div id="epSticker" class="sticker-grid" hidden></div>
+        </div>
+        <div class="composer">
+          <button type="button" class="btn-emoji" id="btnEmoji" title="表情">😊</button>
+          <input id="msgInput" type="text" placeholder="输入消息，粘贴的链接可直接在内置浏览器打开…" maxlength="2000">
+          <button type="button" class="btn-send" id="btnSend">发送</button>
+        </div>
       </div>
     </div>
   </section>
 </div>
+
+<!-- ═══════ 内置浏览器（仿微信） ═══════ -->
+<div id="webview" hidden>
+  <div class="wv-bar">
+    <button type="button" id="wvBack">‹ 返回</button>
+    <div class="wv-title" id="wvTitle">加载中…</div>
+    <button type="button" id="wvRefresh">⟳ 刷新</button>
+    <button type="button" id="wvExternal">↗ 新窗口</button>
+  </div>
+  <div class="wv-url" id="wvUrl"></div>
+  <div class="wv-hint">提示：部分网站（如百度、淘宝）禁止被内嵌显示为空白，此时请点右上角「新窗口」打开</div>
+  <iframe id="wvFrame" rel="noreferrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+</div>
+
+<!-- 图片查看 -->
+<div id="imgViewer" hidden><img id="imgViewerSrc" alt=""></div>
 
 <!-- 添加好友弹窗 -->
 <div class="mask" id="addModal" hidden>
@@ -256,7 +336,29 @@
   </div>
 </div>
 
+<!-- 聊天设置 / 删除好友弹窗 -->
+<div class="mask" id="friendModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="friendModal">×</button>
+    <h3>聊天信息</h3>
+    <div class="fm-info">
+      <div class="avatar" id="fmAvatar"></div>
+      <div>
+        <div style="font-weight:600;font-size:15px" id="fmName"></div>
+        <div style="font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace" id="fmUid"></div>
+      </div>
+    </div>
+    <div class="fm-item">
+      <button type="button" id="btnClearHistory">🧹 清空聊天记录</button>
+    </div>
+    <div class="fm-item">
+      <button type="button" class="danger" id="btnDeleteFriend">🗑 删除好友</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+<input type="file" id="stickerFile" accept="image/*" style="display:none">
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
@@ -415,6 +517,17 @@ function copyText(text, okMsg){
     navigator.clipboard.writeText(text).then(function(){ showToast(okMsg); }, fallback);
   } else fallback();
 }
+/* URL 检测 */
+var URL_RE = /(https?:\/\/[^\s<>"'）】」》。，、！？；：]+)/;
+function isUrl(s){ return URL_RE.test(s); }
+function domainOf(u){
+  try { var a = document.createElement('a'); a.href = u; return a.hostname; }
+  catch(e){ return u; }
+}
+function normalizeUrl(u){
+  if (/^https?:\/\//i.test(u)) return u;
+  return 'http://' + u;
+}
 
 /* ═══════════ 本地数据 ═══════════ */
 var DB_KEY = 'azchat_v5', SES_KEY = 'azchat_session_v5';
@@ -434,7 +547,7 @@ function findNameByUid(uid){
 var me = null, myUid = null, peer = null;
 var conns = {}, unread = {}, currentChat = null;
 
-/* ═══════════ 启动：有会话直接进入聊天 ═══════════ */
+/* ═══════════ 启动 ═══════════ */
 (function(){
   try {
     var u = storage.getItem(SES_KEY);
@@ -481,7 +594,7 @@ function setMode(r){
       if (db[name]) { err.textContent = '该昵称已被注册（本机）'; return; }
       var salt = randHex(8);
       var uid = 'AZ' + sha256('azchat-id::' + name + salt).slice(0, 8).toUpperCase();
-      db[name] = { salt: salt, hash: sha256(salt + pass), uid: uid, contacts: {}, chats: {} };
+      db[name] = { salt: salt, hash: sha256(salt + pass), uid: uid, contacts: {}, chats: {}, stickers: [] };
       saveDB(db);
       showToast('注册成功！你的 ID：' + uid);
       enterApp(name);
@@ -508,7 +621,9 @@ function setMode(r){
 
 function enterApp(name){
   me = name;
-  myUid = loadDB()[name].uid;
+  var rec = loadDB()[name];
+  if (!rec.stickers) rec.stickers = [];
+  myUid = rec.uid;
   try { storage.setItem(SES_KEY, name); } catch(e) {}
   $('myUid').textContent = myUid;
   $('authView').hidden = true;
@@ -516,6 +631,7 @@ function enterApp(name){
   unread = {}; currentChat = null; conns = {};
   showEmptyChat();
   renderContacts();
+  renderStickerGrid();
   setNet('off');
   ensurePeerJS(function(ok){
     if (!ok) { setNet('err'); showToast('无法加载 P2P 组件（PeerJS），请检查网络后刷新', true); return; }
@@ -536,7 +652,7 @@ function enterApp(name){
 
  $('btnCopyUid').onclick = function(){ copyText(myUid, '已复制我的 ID：' + myUid); };
 
-/* ═══════════ PeerJS 加载（内置 + 双 CDN 兜底） ═══════════ */
+/* ═══════════ PeerJS 加载 ═══════════ */
 var PEER_CDNS = [
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
@@ -568,20 +684,17 @@ function setNet(state){
   }
 }
 
-/* ═══════════ Peer 层配置（多 STUN + TURN 中继兜底） ═══════════ */
+/* ═══════════ Peer 层（多 STUN + TURN 兜底） ═══════════ */
 function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
 function peerOpts(){
   return {
     debug: 1,
     config: {
       iceServers: [
-        /* STUN：获取公网映射地址，用于打洞直连 */
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
         { urls: 'stun:stun.miwifi.com:3478' },
-        /* TURN 中继：直连失败时兜底转发，保证能建立连接
-           （消息仍经 DTLS 加密，中继看不到明文） */
         { urls: 'turn:openrelay.metered.ca:80',
           username: 'openrelayproject', credential: 'openrelayproject' },
         { urls: 'turn:openrelay.metered.ca:443',
@@ -600,7 +713,6 @@ function startPeer(){
   setNet('off');
   var opened = false;
   peer = new Peer(peerIdOf(myUid), peerOpts());
-  /* 12 秒连不上信令就明确报错，避免无限等待 */
   setTimeout(function(){
     if (!opened) { setNet('err'); showToast('连接信令服务器超时，请检查网络（可尝试手机热点）', true); }
   }, 12000);
@@ -623,7 +735,6 @@ function startPeer(){
       peer.on('disconnected', function(){ try { peer.reconnect(); } catch(e2) {} });
     } else if (t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') {
       setNet('err');
-      /* 30 秒后自动重试一次 */
       setTimeout(function(){
         if (peer && !peer.open && me) { try { peer.reconnect(); } catch(e2) {} }
       }, 30000);
@@ -638,10 +749,25 @@ function bindIncoming(c){
       var uid = String(d.uid);
       if (d.t === 'add') { handleAddReq(c, uid, d.name); return; }
       var rec = meRec();
-      if (!rec || !rec.contacts[uid]) return;   // 非好友消息一律丢弃
+      if (!rec || !rec.contacts[uid]) return;
       if (!conns[uid]) { conns[uid] = c; updateChatStatus(); }
       if (d.t === 'chat' && typeof d.text === 'string') {
-        receiveMsg(uid, String(d.text).slice(0, 2000), d.ts || Date.now());
+        receiveMsg(uid, { w:'them', text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
+      } else if (d.t === 'sticker' && typeof d.img === 'string' && d.img.indexOf('data:image/') === 0) {
+        if (d.img.length > 500000) return;  // 贴图上限 500KB
+        receiveMsg(uid, { w:'them', img:d.img, ts:d.ts||Date.now() });
+      } else if (d.t === 'del') {
+        /* 对方把你删了：本地同步移除（微信式单向无提示，这里给个轻提示） */
+        if (rec.contacts[uid]) {
+          var nm = rec.contacts[uid].name;
+          delete rec.contacts[uid];
+          delete rec.chats[uid];
+          saveMe(rec);
+          if (currentChat === uid) { $('chatPane').className=''; currentChat=null; showEmptyChat(); }
+          renderContacts();
+          showToast(nm + ' 已将你从好友列表移除', true);
+        }
+        try { c.close(); } catch(e2) {}
       }
     } catch(e) { showToast('处理消息出错：' + e.message, true); }
   });
@@ -686,7 +812,6 @@ function bindIncoming(c){
 
 function sendAddReq(uid){
   showToast('正在寻找对方…（最多等 15 秒）');
-  /* 复用主 Peer 发起（已配置好 STUN/TURN） */
   var c = peer.connect(peerIdOf(uid), { reliable: true });
   var done = false;
   function finish(){
@@ -761,6 +886,54 @@ function nextReq(){
   };
 }
 
+/* ═══════════ 聊天设置 / 删除好友 ═══════════ */
+ $('btnMore').onclick = function(){
+  if (!currentChat) return;
+  var f = meRec().contacts[currentChat];
+  if (!f) return;
+  $('fmName').textContent = f.name;
+  $('fmUid').textContent = f.uid;
+  var av = $('fmAvatar');
+  av.style.background = avatarColor(f.uid);
+  av.textContent = f.name.charAt(0).toUpperCase();
+  openModal('friendModal');
+};
+ $('btnClearHistory').onclick = function(){
+  if (!currentChat) return;
+  if (!confirm('确定清空与「' + meRec().contacts[currentChat].name + '」的全部聊天记录？（仅清空本机，不影响对方）')) return;
+  var rec = meRec();
+  rec.chats[currentChat] = [];
+  saveMe(rec);
+  renderMsgs();
+  renderContacts();
+  closeModal('friendModal');
+  showToast('聊天记录已清空');
+};
+ $('btnDeleteFriend').onclick = function(){
+  if (!currentChat) return;
+  var uid = currentChat;
+  var f = meRec().contacts[uid];
+  if (!f) return;
+  if (!confirm('删除「' + f.name + '」后将同时删除聊天记录，\n且对方的好友列表中也会移除你（若对方在线）。确定删除？')) return;
+  closeModal('friendModal');
+  /* 通知对方（在线时同步删除，微信式） */
+  var c = conns[uid];
+  if (c && c.open) {
+    try { c.send({ t: 'del', uid: myUid }); } catch(e) {}
+    setTimeout(function(){ try { c.close(); } catch(e) {} }, 500);
+  }
+  delete conns[uid];
+  var rec = meRec();
+  delete rec.contacts[uid];
+  delete rec.chats[uid];
+  saveMe(rec);
+  $('chatPane').className = '';
+  currentChat = null;
+  showEmptyChat();
+  renderContacts();
+  showToast('已删除 ' + f.name);
+};
+
 /* ═══════════ 好友列表 ═══════════ */
 function lastTs(rec, uid){
   var ch = rec.chats[uid];
@@ -805,7 +978,11 @@ function renderContacts(){
 }
 
 /* ═══════════ 聊天 ═══════════ */
-function showEmptyChat(){ $('chatEmpty').hidden = false; $('chatBox').hidden = true; }
+function showEmptyChat(){
+  $('chatEmpty').hidden = false;
+  $('chatBox').hidden = true;
+  hideEmojiPanel();
+}
 function openChat(uid){
   var f = meRec().contacts[uid];
   if (!f) return;
@@ -816,6 +993,7 @@ function openChat(uid){
   $('chatPane').className = 'open';
   $('chName').textContent = f.name;
   $('chUid').textContent = uid;
+  hideEmojiPanel();
   renderMsgs();
   renderContacts();
   updateChatStatus();
@@ -827,6 +1005,42 @@ function openChat(uid){
   currentChat = null;
   showEmptyChat();
 };
+
+/* 消息气泡：支持文本（链接可点击）与贴图 */
+function buildBubbleContent(bub, m){
+  if (m.img) {
+    bub.className += ' has-img';
+    var img = document.createElement('img');
+    img.src = m.img;
+    img.alt = '贴图';
+    img.onclick = function(e){
+      e.stopPropagation();
+      $('imgViewerSrc').src = m.img;
+      $('imgViewer').hidden = false;
+    };
+    bub.appendChild(img);
+    return;
+  }
+  var text = m.text || '';
+  var parts = text.split(URL_RE);
+  for (var i = 0; i < parts.length; i++) {
+    if (!parts[i]) continue;
+    if (i % 2 === 1) {
+      /* 是 URL：安全地创建可点击链接（用 textContent，无注入风险） */
+      var a = document.createElement('a');
+      a.className = 'm-link';
+      a.textContent = parts[i];
+      var href = normalizeUrl(parts[i]);
+      a.onclick = (function(url){ return function(e){
+        e.preventDefault();
+        openWebview(url);
+      }; })(href);
+      bub.appendChild(a);
+    } else {
+      bub.appendChild(document.createTextNode(parts[i]));
+    }
+  }
+}
 
 function renderMsgs(){
   var box = $('msgs');
@@ -848,7 +1062,7 @@ function renderMsgs(){
     row.appendChild(avatarEl(m.w === 'me' ? me : f.name, m.w === 'me' ? myUid : currentChat, true));
     var bub = document.createElement('div');
     bub.className = 'm-bubble';
-    bub.textContent = m.text;
+    buildBubbleContent(bub, m);
     row.appendChild(bub);
     box.appendChild(row);
   });
@@ -861,15 +1075,18 @@ function updateChatStatus(){
   $('chStatus').textContent = on ? 'P2P 已连接' : '未连接';
 }
 
-function receiveMsg(uid, text, ts){
+function receiveMsg(uid, msg){
   var rec = meRec();
   if (!rec.chats[uid]) rec.chats[uid] = [];
-  rec.chats[uid].push({ w: 'them', text: text, ts: ts });
+  rec.chats[uid].push(msg);
+  /* 限制每会话最多 300 条，防止 localStorage 爆满 */
+  if (rec.chats[uid].length > 300) rec.chats[uid] = rec.chats[uid].slice(-300);
   saveMe(rec);
   if (currentChat === uid) renderMsgs();
   else {
     unread[uid] = (unread[uid] || 0) + 1;
-    showToast(rec.contacts[uid].name + '：' + text.slice(0, 20));
+    var preview = msg.img ? '[贴图]' : String(msg.text).slice(0, 20);
+    showToast(rec.contacts[uid].name + '：' + preview);
   }
   renderContacts();
 }
@@ -884,7 +1101,6 @@ function ensureConn(uid, cb){
   }
   var nc = peer.connect(peerIdOf(uid), { reliable: true });
   var opened = false;
-  /* 带 TURN 后走中继会慢几秒，超时给到 20 秒 */
   var timer = setTimeout(function(){
     if (!opened) {
       showToast('对方不在线，无法送达。对方需保持页面打开', true);
@@ -919,7 +1135,9 @@ function sendMsg(){
   var rec = meRec();
   if (!rec.chats[uid]) rec.chats[uid] = [];
   var ts = Date.now();
-  rec.chats[uid].push({ w: 'me', text: text, ts: ts });
+  var msg = { w: 'me', text: text, ts: ts };
+  rec.chats[uid].push(msg);
+  if (rec.chats[uid].length > 300) rec.chats[uid] = rec.chats[uid].slice(-300);
   saveMe(rec);
   renderMsgs();
   ensureConn(uid, function(c){
@@ -932,6 +1150,164 @@ function sendMsg(){
   if (e.key === 'Enter') { e.preventDefault(); sendMsg(); }
 };
 
+/* ═══════════ 表情 & 贴图 ═══════════ */
+var EMOJIS = ('😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😜 🤪 🤗 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 😯 😴 😌 😔 😕 🙃 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 😳 🤢 🤮 😷 🤒 🤕 🤑 🤠 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👏 🙌 🤝 💪 🙏 ❤️ 💔 💯 💢 💥 💧 ✨ 🎉 🎁 🌹 🌹 🍉 🍓 🍺 ☕ 🐶 🐱 🐼 🌙 ⭐ 🔥 ⚡ 🌈').split(/\s+/);
+var epTab = 'emoji';
+
+function hideEmojiPanel(){
+  $('emojiPanel').hidden = true;
+  $('btnEmoji').classList.remove('on');
+}
+ $('btnEmoji').onclick = function(){
+  var p = $('emojiPanel');
+  p.hidden = !p.hidden;
+  this.classList.toggle('on', !p.hidden);
+  if (!p.hidden) setEpTab(epTab);
+};
+function setEpTab(t){
+  epTab = t;
+  $('epTabEmoji').className = t === 'emoji' ? 'on' : '';
+  $('epTabSticker').className = t === 'sticker' ? 'on' : '';
+  $('epEmoji').hidden = (t !== 'emoji');
+  $('epSticker').hidden = (t !== 'sticker');
+}
+ $('epTabEmoji').onclick = function(){ setEpTab('emoji'); };
+ $('epTabSticker').onclick = function(){ setEpTab('sticker'); };
+
+/* Emoji 网格 */
+  var grid = $('epEmoji');
+  EMOJIS.forEach(function(em){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = em;
+    b.onclick = function(){
+      $('msgInput').value += em;
+      $('msgInput').focus();
+    };
+    grid.appendChild(b);
+  });
+})();
+
+/* 贴图 */
+function renderStickerGrid(){
+  var grid = $('epSticker');
+  grid.innerHTML = '';
+  var rec = meRec();
+  var stickers = rec.stickers || [];
+  stickers.forEach(function(dataUrl, idx){
+    var img = document.createElement('img');
+    img.className = 'stk';
+    img.src = dataUrl;
+    img.title = '点击发送 / 右键删除';
+    img.oncontextmenu = function(e){
+      e.preventDefault();
+      if (confirm('从我的贴图收藏中删除这张？')) {
+        rec.stickers.splice(idx, 1);
+        saveMe(rec);
+        renderStickerGrid();
+      }
+    };
+    img.onclick = function(){ sendSticker(dataUrl); };
+    grid.appendChild(img);
+  });
+  var add = document.createElement('button');
+  add.type = 'button';
+  add.className = 'sticker-add';
+  add.textContent = '＋';
+  add.title = '添加贴图（图片自动压缩；右键贴图可删除）';
+  add.onclick = function(){ $('stickerFile').click(); };
+  grid.appendChild(add);
+}
+ $('stickerFile').onchange = function(){
+  var f = this.files[0];
+  if (!f) return;
+  if (f.size > 8 * 1024 * 1024) { showToast('图片太大，请选择 8MB 以内的图片', true); this.value=''; return; }
+  compressImage(f, function(dataUrl, err){
+    if (err) { showToast('图片处理失败：' + err, true); return; }
+    var rec = meRec();
+    if (!rec.stickers) rec.stickers = [];
+    if (rec.stickers.length >= 18) { showToast('贴图收藏已满（18 张），右键删除一些再添加', true); return; }
+    rec.stickers.push(dataUrl);
+    saveMe(rec);
+    renderStickerGrid();
+    showToast('贴图已收藏，点击即可发送');
+  });
+  this.value = '';
+};
+/* 图片压缩到 240px 内，控制在传输与存储可承受范围 */
+function compressImage(file, cb){
+  var reader = new FileReader();
+  reader.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      try {
+        var MAX = 240;
+        var w = img.width, h = img.height;
+        var scale = Math.min(1, MAX / Math.max(w, h));
+        var cv = document.createElement('canvas');
+        cv.width = Math.round(w * scale);
+        cv.height = Math.round(h * scale);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        var type = (file.type === 'image/png') ? 'image/png' : 'image/jpeg';
+        var out = cv.toDataURL(type, 0.8);
+        if (out.length > 500000) {
+          out = cv.toDataURL('image/jpeg', 0.5);
+          if (out.length > 500000) { cb(null, '压缩后仍过大'); return; }
+        }
+        cb(out, null);
+      } catch(e) { cb(null, e.message); }
+    };
+    img.onerror = function(){ cb(null, '无法读取该图片'); };
+    img.src = reader.result;
+  };
+  reader.onerror = function(){ cb(null, '读取文件失败'); };
+  reader.readAsDataURL(file);
+}
+function sendSticker(dataUrl){
+  if (!currentChat) return;
+  var uid = currentChat;
+  var ts = Date.now();
+  var rec = meRec();
+  if (!rec.chats[uid]) rec.chats[uid] = [];
+  var msg = { w: 'me', img: dataUrl, ts: ts };
+  rec.chats[uid].push(msg);
+  if (rec.chats[uid].length > 300) rec.chats[uid] = rec.chats[uid].slice(-300);
+  saveMe(rec);
+  renderMsgs();
+  hideEmojiPanel();
+  ensureConn(uid, function(c){
+    try { c.send({ t: 'sticker', uid: myUid, img: dataUrl, ts: ts }); }
+    catch(e) { showToast('发送失败，对方可能已离线', true); }
+  });
+}
+
+/* ═══════════ 图片查看器 ═══════════ */
+ $('imgViewer').onclick = function(){ this.hidden = true; };
+
+/* ═══════════ 内置浏览器（仿微信） ═══════════ */
+function openWebview(url){
+  $('wvTitle').textContent = domainOf(url);
+  $('wvUrl').textContent = url;
+  $('wvFrame').src = url;
+  $('webview').hidden = false;
+}
+ $('wvBack').onclick = function(){
+  $('webview').hidden = true;
+  $('wvFrame').src = 'about:blank';
+};
+ $('wvRefresh').onclick = function(){
+  var f = $('wvFrame');
+  var u = f.src;
+  f.src = 'about:blank';
+  setTimeout(function(){ f.src = u; }, 50);
+};
+ $('wvExternal').onclick = function(){
+  if ($('wvFrame').src && $('wvFrame').src !== 'about:blank') {
+    window.open($('wvFrame').src, '_blank', 'noopener');
+  }
+};
+
+/* 弹窗关闭按钮 */
 var closeBtns = document.querySelectorAll('.modal-close');
 for (var i = 0; i < closeBtns.length; i++) {
   (function(btn){
