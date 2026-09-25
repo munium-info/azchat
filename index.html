@@ -172,7 +172,7 @@
       <button type="submit" class="btn-primary" id="authSubmit">进入</button>
     </form>
   </div>
-  <p class="auth-note">登录一次后，每次打开网址都会自动进入聊天<br>消息经 WebRTC 端到端直连，不经服务器存储</p>
+  <p class="auth-note">登录一次后，每次打开网址都会自动进入聊天<br>消息经 WebRTC 端到端加密，不经服务器存储明文</p>
 </main>
 
 <!-- ═══════ 主界面 ═══════ -->
@@ -568,17 +568,30 @@ function setNet(state){
   }
 }
 
-/* ═══════════ Peer 层（多 STUN 提升穿透率 + 自动重连） ═══════════ */
+/* ═══════════ Peer 层配置（多 STUN + TURN 中继兜底） ═══════════ */
 function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
 function peerOpts(){
   return {
+    debug: 1,
     config: {
       iceServers: [
+        /* STUN：获取公网映射地址，用于打洞直连 */
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun.cloudflare.com:3478' },
-        { urls: 'stun:stun.miwifi.com:3478' }
-      ]
+        { urls: 'stun:stun.miwifi.com:3478' },
+        /* TURN 中继：直连失败时兜底转发，保证能建立连接
+           （消息仍经 DTLS 加密，中继看不到明文） */
+        { urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+          username: 'openrelayproject', credential: 'openrelayproject' }
+      ],
+      iceCandidatePoolSize: 10
     }
   };
 }
@@ -672,8 +685,8 @@ function bindIncoming(c){
 };
 
 function sendAddReq(uid){
-  showToast('正在寻找对方…');
-  /* 用主 peer 发起（已在 startPeer 中配置好 ICE），失败单独提示 */
+  showToast('正在寻找对方…（最多等 15 秒）');
+  /* 复用主 Peer 发起（已配置好 STUN/TURN） */
   var c = peer.connect(peerIdOf(uid), { reliable: true });
   var done = false;
   function finish(){
@@ -686,7 +699,7 @@ function sendAddReq(uid){
       showToast('对方不在线或 ID 不存在。注意：对方必须在自己的设备上注册，并保持页面打开', true);
       finish();
     }
-  }, 12000);
+  }, 15000);
   c.on('open', function(){ c.send({ t: 'add', uid: myUid, name: me }); });
   c.on('data', function(d){
     clearTimeout(timer); finish();
@@ -871,13 +884,14 @@ function ensureConn(uid, cb){
   }
   var nc = peer.connect(peerIdOf(uid), { reliable: true });
   var opened = false;
+  /* 带 TURN 后走中继会慢几秒，超时给到 20 秒 */
   var timer = setTimeout(function(){
     if (!opened) {
       showToast('对方不在线，无法送达。对方需保持页面打开', true);
       try { nc.close(); } catch(e) {}
       updateChatStatus();
     }
-  }, 12000);
+  }, 20000);
   nc.on('open', function(){
     opened = true;
     clearTimeout(timer);
