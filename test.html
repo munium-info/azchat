@@ -1,127 +1,989 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AzChat 连接诊断</title>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AzChat · 点对点聊天</title>
 <style>
-body{font:15px/1.8 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#222}
-h3{margin:28px 0 10px}
-.step{background:#F6F6F6;border-radius:8px;padding:12px 16px;margin:8px 0}
-.ok{color:#07C160;font-weight:600}.bad{color:#D93025;font-weight:600}.wait{color:#999}
-input{padding:10px;font-size:15px;width:180px;border:1px solid #ccc;border-radius:6px}
-button{padding:10px 18px;font-size:14px;background:#07C160;color:#fff;border:none;border-radius:6px;margin-left:8px;cursor:pointer}
-code{background:#EEE;padding:2px 6px;border-radius:4px;font-size:13px}
-</style></head>
+  :root{
+    --bg:#F2F2F2; --panel:#FFFFFF; --ink:#191919; --sub:#9A9A9A;
+    --line:#E6E6E6; --green:#07C160; --bubble:#95EC69; --chatbg:#EDEDED;
+    --unread:#FA5151;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-size:14px;
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none;background:none}
+  input{font-family:inherit;outline:none}
+  [hidden]{display:none !important}
+
+  #toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-80px);z-index:300;
+    background:#3A3A3A;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;
+    box-shadow:0 6px 20px rgba(0,0,0,.18);transition:transform .3s;
+    pointer-events:none;max-width:88vw;text-align:center;word-break:break-all}
+  #toast.show{transform:translate(-50%,0)}
+  #toast.err{background:#C0392B}
+
+  /* ══ 登录/注册（仅首次或退出后可见） ══ */
+  #authView{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px}
+  .logo{width:64px;height:64px;border-radius:16px;background:var(--green);display:flex;
+    align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:700}
+  .auth-title{font-size:21px;font-weight:600;margin:16px 0 4px}
+  .auth-sub{font-size:12.5px;color:var(--sub);margin-bottom:28px}
+  .auth-box{width:100%;max-width:330px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:6px}
+  .field input{width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;font-size:14px;transition:border-color .15s}
+  .field input:focus{border-color:var(--green)}
+  .field input.uid-input{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;text-align:center}
+  .field .hint{font-size:11px;color:var(--sub);margin-top:5px}
+  .remember-row{display:flex;align-items:center;gap:8px;margin:-4px 0 12px;font-size:13px;color:var(--sub);cursor:pointer;user-select:none}
+  .remember-row input{width:16px;height:16px;accent-color:var(--green);cursor:pointer}
+  .form-err{color:var(--unread);font-size:12.5px;min-height:20px;margin-bottom:6px}
+  .btn-primary{width:100%;background:var(--green);color:#fff;border-radius:8px;padding:13px;
+    font-size:15px;font-weight:500;transition:opacity .15s}
+  .btn-primary:hover{opacity:.9}
+  .tabs{display:flex;background:#E9E9E9;border-radius:8px;padding:3px;margin-bottom:22px}
+  .tabs button{flex:1;padding:9px;border-radius:6px;font-size:13.5px;color:var(--sub)}
+  .tabs button.on{background:#fff;color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .auth-note{margin-top:26px;font-size:11.5px;color:var(--sub);text-align:center;line-height:1.9}
+
+  /* ══ 主界面 ══ */
+  #appView{height:100%;display:flex}
+  #sidebar{width:280px;background:var(--panel);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;flex-shrink:0}
+  .sb-head{padding:16px 16px 12px;display:flex;align-items:center;gap:10px}
+  .sb-head b{font-size:15px}
+  .net-status{padding:0 16px 10px;font-size:12px;color:var(--sub);line-height:1.5}
+  .sb-id{padding:0 16px 12px}
+  .id-chip{background:#F6F6F6;border-radius:7px;padding:7px 10px;display:flex;
+    align-items:center;justify-content:space-between;gap:8px}
+  .id-chip code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;letter-spacing:.05em}
+  .id-chip button{color:var(--sub);padding:2px;font-size:12px}
+  .id-chip button:hover{color:var(--green)}
+  .btn-add{margin:0 16px 10px;display:flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--green);color:#fff;border-radius:8px;padding:10px;font-size:13.5px;font-weight:500}
+  .btn-add:hover{opacity:.9}
+  .sb-label{padding:6px 16px;font-size:11px;color:var(--sub);letter-spacing:.1em}
+  #contactList{flex:1;overflow-y:auto;padding-bottom:10px}
+  .c-item{display:flex;align-items:center;gap:11px;padding:10px 16px;cursor:pointer;position:relative}
+  .c-item:hover{background:#F5F5F5}
+  .c-item.on{background:#EBEBEB}
+  .avatar{width:42px;height:42px;border-radius:8px;color:#fff;font-size:17px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .c-info{flex:1;min-width:0}
+  .c-name{font-size:14.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .c-uid{font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace}
+  .c-dot{position:absolute;left:50px;top:10px;min-width:17px;height:17px;border-radius:9px;background:var(--unread);
+    color:#fff;font-size:10.5px;display:flex;align-items:center;justify-content:center;padding:0 4px;font-weight:600}
+  .c-empty{padding:36px 24px;text-align:center;color:var(--sub);font-size:12.5px;line-height:1.9}
+  .sb-foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px}
+  .sb-foot button{flex:1;padding:8px 4px;font-size:12.5px;color:var(--sub);border-radius:6px;white-space:nowrap}
+  .sb-foot button:hover{background:#F0F0F0;color:var(--ink)}
+
+  #chatPane{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--chatbg)}
+  #chatEmpty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--sub)}
+  #chatEmpty .logo{opacity:.25}
+  .chat-head{padding:13px 20px;background:#F7F7F7;border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:12px}
+  .btn-back{display:none;width:28px;height:28px;color:var(--sub);align-items:center;justify-content:center;font-size:20px}
+  .ch-name{font-size:16px;font-weight:600}
+  .ch-uid{font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace;margin-top:2px}
+  .ch-status{margin-left:auto;font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#C4C4C4}
+  .dot.live{background:var(--green)}
+  #msgs{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+  .t-div{align-self:center;font-size:11.5px;color:#A6A6A6;background:#DADADA;border-radius:4px;padding:3px 9px}
+  .m-row{display:flex;gap:10px;max-width:78%;align-items:flex-start}
+  .m-row.me{flex-direction:row-reverse;align-self:flex-end}
+  .m-row.them{align-self:flex-start}
+  .m-avatar{width:36px;height:36px;border-radius:6px;color:#fff;font-size:14px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+  .m-bubble{padding:10px 13px;border-radius:8px;font-size:14.5px;line-height:1.55;
+    white-space:pre-wrap;word-break:break-word}
+  .them .m-bubble{background:#fff}
+  .me .m-bubble{background:var(--bubble)}
+  .composer{display:flex;gap:10px;padding:14px 18px;background:#F7F7F7;border-top:1px solid var(--line)}
+  .composer input{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:14px;background:#fff}
+  .composer input:focus{border-color:var(--green)}
+  .btn-send{background:var(--green);color:#fff;border-radius:8px;padding:0 22px;font-size:14px;font-weight:500}
+
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;
+    align-items:center;justify-content:center;padding:20px}
+  .modal{background:#fff;border-radius:12px;width:100%;max-width:340px;padding:22px}
+  .modal h3{font-size:16px;margin-bottom:16px;font-weight:600}
+  .req-user{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .req-msg{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:18px}
+  .modal-btns{display:flex;gap:10px}
+  .mbtn{flex:1;padding:11px;border-radius:8px;font-size:14px;font-weight:500}
+  .mbtn.gray{background:#F0F0F0;color:var(--ink)}
+  .mbtn.green{background:var(--green);color:#fff}
+  .modal-close{float:right;color:var(--sub);font-size:20px;line-height:1;padding:2px 4px}
+  .modal-close:hover{color:var(--ink)}
+
+  @media (max-width:680px){
+    #sidebar{width:100%;border-right:none}
+    #chatPane{position:fixed;inset:0;z-index:10;display:none}
+    #chatPane.open{display:flex}
+    .btn-back{display:flex}
+  }
+</style>
+</head>
 <body>
 
-<h2>🔍 AzChat 连接诊断</h2>
-<p>本页不登录、不注册，专门测试 P2P 链路每一层是否通。</p>
+<div id="toast"></div>
 
-<div class="step" id="s1">① PeerJS 库加载：<span class="wait">检测中…</span></div>
-<div class="step" id="s2">② 信令服务器连接：<span class="wait">检测中…</span></div>
-<div class="step" id="s3">③ 我的测试码：<span class="wait">生成中…</span></div>
-<div class="step" id="s4">④ 双向连通测试：
-  <div style="margin-top:8px">
-    <input id="peerCode" placeholder="输入对方测试码">
-    <button id="btnConn">连接对方</button>
-    <span id="connResult"></span>
+<!-- ═══════ 登录 / 注册（仅首次或退出后显示） ═══════ -->
+<main id="authView" hidden>
+  <div class="logo">A</div>
+  <div class="auth-title">AzChat</div>
+  <div class="auth-sub">点对点加密聊天 · 登录一次，以后自动进入</div>
+  <div class="auth-box">
+    <div class="tabs">
+      <button type="button" id="tabLogin" class="on">登录</button>
+      <button type="button" id="tabReg">注册</button>
+    </div>
+    <form id="authForm" novalidate>
+      <div class="field" id="fUidWrap">
+        <label>AzChat ID</label>
+        <input id="fUid" class="uid-input" type="text" placeholder="AZ + 8 位字符" maxlength="10" autocomplete="off">
+      </div>
+      <div class="field" id="fUserWrap" hidden>
+        <label>昵称</label>
+        <input id="fUser" type="text" placeholder="2–16 个字符" maxlength="16" autocomplete="off">
+        <div class="hint">注册成功后自动分配你的专属 ID</div>
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input id="fPass" type="password" placeholder="至少 6 位">
+      </div>
+      <div class="field" id="fPass2Wrap" hidden>
+        <label>确认密码</label>
+        <input id="fPass2" type="password" placeholder="再输入一次">
+      </div>
+      <label class="remember-row" id="rememberRow">
+        <input type="checkbox" id="fRemember" checked>
+        记住我，以后打开直接进入
+      </label>
+      <div class="form-err" id="formErr"></div>
+      <button type="submit" class="btn-primary" id="authSubmit">进入</button>
+    </form>
+  </div>
+  <p class="auth-note">登录一次后，每次打开网址都会自动进入聊天<br>消息经 WebRTC 端到端加密，不经服务器存储明文</p>
+</main>
+
+<!-- ═══════ 主界面 ═══════ -->
+<div id="appView" hidden>
+  <aside id="sidebar">
+    <div class="sb-head">
+      <div style="width:34px;height:34px;border-radius:8px;background:var(--green);color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center">A</div>
+      <b>AzChat</b>
+    </div>
+    <!-- 信令连接状态指示 -->
+    <div class="net-status" id="netStatus">● 正在连接信令服务器…</div>
+    <div class="sb-id">
+      <div class="id-chip">
+        <code id="myUid">—</code>
+        <button type="button" id="btnCopyUid">复制</button>
+      </div>
+    </div>
+    <button type="button" class="btn-add" id="btnAddFriend">＋ 添加好友</button>
+    <div class="sb-label">好友列表</div>
+    <div id="contactList"></div>
+    <div class="sb-foot">
+      <button type="button" id="btnBackup">备份</button>
+      <button type="button" id="btnImport">导入</button>
+      <button type="button" id="btnLogout">退出</button>
+    </div>
+  </aside>
+
+  <section id="chatPane">
+    <div id="chatEmpty">
+      <div class="logo" style="opacity:.25">A</div>
+      <div>选择一位好友开始点对点聊天</div>
+    </div>
+    <div id="chatBox" hidden style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <div class="chat-head">
+        <button type="button" class="btn-back" id="btnBack">‹</button>
+        <div>
+          <div class="ch-name" id="chName"></div>
+          <div class="ch-uid" id="chUid"></div>
+        </div>
+        <div class="ch-status"><span class="dot" id="chDot"></span><span id="chStatus">未连接</span></div>
+      </div>
+      <div id="msgs"></div>
+      <div class="composer">
+        <input id="msgInput" type="text" placeholder="输入消息…" maxlength="2000">
+        <button type="button" class="btn-send" id="btnSend">发送</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 添加好友弹窗 -->
+<div class="mask" id="addModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="addModal">×</button>
+    <h3>添加好友</h3>
+    <div class="field">
+      <label>对方 AzChat ID</label>
+      <input id="addInput" class="uid-input" type="text" placeholder="AZ + 8 位字符" maxlength="10">
+    </div>
+    <div class="form-err" id="addErr"></div>
+    <button type="button" class="mbtn green" id="btnDoAdd" style="width:100%">发送添加请求</button>
   </div>
 </div>
-<div class="step" id="s5">⑤ 网络类型检测：<span class="wait">连接后检测…</span></div>
 
-<div style="margin-top:24px;background:#FFF8E1;border-radius:8px;padding:14px 16px;font-size:13.5px">
-<b>怎么测：</b>两个设备（或两个不同网络的浏览器）各开本页 →
-<b>设备A</b> 把测试码告诉<b>设备B</b> → B 输入后点「连接对方」→
-两边都显示 <b>✅ 双向打通</b> 即链路正常（那问题就在主程序的账号逻辑）；
-如果卡在 ② 或 ④，把本页显示的结果 + F12 控制台红字截图发出来。
+<!-- 好友验证弹窗 -->
+<div class="mask" id="reqModal" hidden>
+  <div class="modal">
+    <h3>好友添加请求</h3>
+    <div class="req-user">
+      <div class="avatar" id="reqAvatar"></div>
+      <div>
+        <div style="font-weight:600;font-size:15px" id="reqName"></div>
+        <div style="font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace" id="reqUid"></div>
+      </div>
+    </div>
+    <div class="req-msg" id="reqText"></div>
+    <div class="modal-btns">
+      <button type="button" class="mbtn gray" id="btnReject">拒绝</button>
+      <button type="button" class="mbtn green" id="btnAccept">接受</button>
+    </div>
+  </div>
 </div>
+
+<input type="file" id="importFile" accept=".json,application/json" style="display:none">
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-function set(id, html){ document.querySelector('#'+id+' span').innerHTML = html; }
-var myPeer = null, myCode = null, others = {};
-
-/* ① 库 */
-if (typeof Peer === 'undefined') {
-  set('s1','<span class="bad">❌ 加载失败！CDN 被墙/无网。这是最底层问题</span>');
-} else {
-  set('s1','<span class="ok">✅ 已加载</span>');
-  /* ② 信令 */
-  myCode = Math.random().toString(36).slice(2,6).toUpperCase();
-  myPeer = new Peer('azdiag-' + myCode.toLowerCase(), {
-    config:{ iceServers:[
-      {urls:'stun:stun.l.google.com:19302'},
-      {urls:'stun:stun.cloudflare.com:3478'},
-      {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443'],
-       username:'openrelayproject', credential:'openrelayproject'},
-      {urls:'turn:openrelay.metered.ca:443?transport=tcp',
-       username:'openrelayproject', credential:'openrelayproject'}
-    ]}
-  });
-  var signalOk = false;
-  myPeer.on('open', function(){
-    signalOk = true;
-    set('s2','<span class="ok">✅ 已连接</span>');
-    set('s3','<span class="ok" style="font-size:20px;letter-spacing:2px">'+myCode+'</span> <small style="color:#999">（告诉对方）</small>');
-  });
-  myPeer.on('disconnected', function(){
-    if (signalOk) set('s2','<span class="bad">❌ 连接中断</span>');
-    try{ myPeer.reconnect(); }catch(e){}
-  });
-  myPeer.on('error', function(e){
-    set('s2','<span class="bad">❌ 信令失败：'+e.type+'</span>');
-    if (e.type==='peer-unavailable') set('connResult','<span class="bad">对方测试码不存在</span>');
-  });
-  /* ④ 被动接收 */
-  myPeer.on('connection', function(c){
-    c.on('data', function(d){
-      if (d.t==='ping'){ c.send({t:'pong'}); note(c.peer, true); }
-    });
-    c.on('open', function(){ c.send({t:'ping'}); });
-  });
-}
-
-var gotPing=false, gotPong=false;
-function note(peerId, asReceiver){
-  if (asReceiver) gotPing=true; else gotPong=true;
-  var msg = (gotPing?'收到对方消息 ✅ ':'') + (gotPong?'已回复对方 ✅':'');
-  if (gotPing||gotPong) set('s4', '④ 双向连通测试：'+msg+' <b>🎉 链路完全正常！</b>');
-}
-
-document.getElementById('btnConn').onclick = function(){
-  var code = document.getElementById('peerCode').value.trim().toUpperCase();
-  if (!myPeer || !myPeer.open) { set('connResult','<span class="bad">信令还没连上，无法发起</span>'); return; }
-  if (code.length!==4) { set('connResult','<span class="bad">测试码是 4 位</span>'); return; }
-  set('connResult','<span class="wait">连接中…最多等15秒</span>');
-  var c = myPeer.connect('azdiag-'+code.toLowerCase());
-  var done=false;
-  var timer=setTimeout(function(){ if(!done) set('connResult','<span class="bad">❌ 超时：信令通但 WebRTC 打洞失败（通常是严格NAT，双方换网络再试；若诊断页带TURN仍失败，需要自建TURN）</span>'); },15000);
-  c.on('open', function(){
-    c.send({t:'ping'});
-    c.on('data', function(d){ if(d.t==='pong'){ done=true; clearTimeout(timer); gotPong=true; note(code,true); } });
-  });
-  c.on('error', function(){ clearTimeout(timer); set('connResult','<span class="bad">连接出错</span>'); });
+/* ═══════════ 全局错误显示 ═══════════ */
+window.onerror = function(msg, src, line){
+  try { showToast('脚本出错：' + msg + '（第 ' + line + ' 行）', true); } catch(e) {}
+  return false;
 };
 
-/* ⑤ 简易NAT类型提示 */
-myPeer && myPeer.on('open', function(){
-  var pc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
-  var cands=[];
-  pc.createDataChannel('x');
-  pc.onicecandidate = function(e){
-    if (e.candidate) cands.push(e.candidate.candidate);
-    else {
-      var hasSrflx = cands.some(function(c){return c.indexOf('typ srflx')>-1;});
-      var hasRelay = cands.some(function(c){return c.indexOf('typ relay')>-1;});
-      var host = cands.some(function(c){return c.indexOf('typ host')>-1;});
-      var s = host?'可获取本机地址 ':'';
-      s += hasSrflx?'可获取公网映射地址(STUN正常) ':'';
-      s += hasRelay?'TURN可用 ':'无TURN';
-      set('s5','<span class="'+(hasSrflx?'ok':'bad')+'">'+(hasSrflx?'✅':'❌')+' '+s+'</span>'+
-        '<br><small style="color:#888">没有 srflx = 你的网络完全封锁了UDP（公司/校园网常见），只能靠TURN或换网络</small>');
+/* ═══════════ 存储兜底 ═══════════ */
+var storageIsMemory = false;
+var storage = (function(){
+  try {
+    window.localStorage.setItem('__az_t__','1');
+    window.localStorage.removeItem('__az_t__');
+    return window.localStorage;
+  } catch(e) {
+    storageIsMemory = true;
+    var mem = {};
+    return {
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(mem,k) ? mem[k] : null; },
+      setItem: function(k,v){ mem[k] = String(v); },
+      removeItem: function(k){ delete mem[k]; }
+    };
+  }
+})();
+
+/* ═══════════ 纯 JS SHA-256 ═══════════ */
+function sha256(msg){
+  function rr(x,n){ return (x>>>n) | (x<<(32-n)); }
+  var K = [], H0 = [], pc = 0, n = 2, i, p;
+  while (pc < 64) {
+    p = true;
+    for (i = 2; i*i <= n; i++) { if (n % i === 0) { p = false; break; } }
+    if (p) {
+      K[pc] = ((Math.pow(n, 1/3) % 1) * 4294967296) | 0;
+      if (pc < 8) H0[pc] = ((Math.pow(n, 1/2) % 1) * 4294967296) | 0;
+      pc++;
+    }
+    n++;
+  }
+  var bin;
+  try { bin = unescape(encodeURIComponent(msg)); }
+  catch(e) { bin = msg; }
+  var l = bin.length, bitLen = l * 8;
+  var total = (((l + 9) + 63) >> 6) << 6;
+  var words = new Array(total >> 2);
+  for (i = 0; i < words.length; i++) words[i] = 0;
+  for (i = 0; i < l; i++) words[i >> 2] |= bin.charCodeAt(i) << ((3 - (i & 3)) * 8);
+  words[l >> 2] |= 0x80 << ((3 - (l & 3)) * 8);
+  words[words.length - 1] = bitLen;
+  var H = H0.slice(), w = new Array(64);
+  for (var off = 0; off < words.length; off += 16) {
+    for (i = 0; i < 16; i++) w[i] = words[off + i];
+    for (i = 16; i < 64; i++) {
+      var s0 = rr(w[i-15],7) ^ rr(w[i-15],18) ^ (w[i-15]>>>3);
+      var s1 = rr(w[i-2],17) ^ rr(w[i-2],19) ^ (w[i-2]>>>10);
+      w[i] = (w[i-16] + s0 + w[i-7] + s1) | 0;
+    }
+    var a=H[0],b=H[1],c=H[2],d=H[3],e=H[4],f=H[5],g=H[6],h=H[7];
+    for (i = 0; i < 64; i++) {
+      var S1 = rr(e,6)^rr(e,11)^rr(e,25), ch = (e&f)^(~e&g);
+      var t1 = (h + S1 + ch + K[i] + w[i]) | 0;
+      var S0 = rr(a,2)^rr(a,13)^rr(a,22), mj = (a&b)^(a&c)^(b&c);
+      var t2 = (S0 + mj) | 0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    H[0]=(H[0]+a)|0; H[1]=(H[1]+b)|0; H[2]=(H[2]+c)|0; H[3]=(H[3]+d)|0;
+    H[4]=(H[4]+e)|0; H[5]=(H[5]+f)|0; H[6]=(H[6]+g)|0; H[7]=(H[7]+h)|0;
+  }
+  var out = '';
+  for (i = 0; i < 8; i++) out += ('00000000' + (H[i]>>>0).toString(16)).slice(-8);
+  return out;
+}
+
+/* ═══════════ 随机数 / 记住密码的本地加密 ═══════════ */
+function randHex(len){
+  var out = '';
+  try {
+    var arr = new Uint8Array(len);
+    crypto.getRandomValues(arr);
+    for (var i = 0; i < len; i++) out += ('0' + arr[i].toString(16)).slice(-2);
+  } catch(e) {
+    while (out.length < len*2) out += Math.floor(Math.random()*256).toString(16).slice(-2);
+  }
+  return out.slice(0, len*2);
+}
+function deviceKey(){
+  var k = storage.getItem('azchat_dk');
+  if (!k) { k = randHex(16); storage.setItem('azchat_dk', k); }
+  return k;
+}
+function encPass(pass){
+  var key = deviceKey(), out = '';
+  for (var i = 0; i < pass.length; i++) {
+    out += String.fromCharCode(pass.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  }
+  try { return 'x' + btoa(unescape(encodeURIComponent(out))); }
+  catch(e) { return null; }
+}
+function decPass(stored){
+  if (!stored || stored.charAt(0) !== 'x') return null;
+  try {
+    var raw = decodeURIComponent(escape(atob(stored.slice(1))));
+    var key = deviceKey(), out = '';
+    for (var i = 0; i < raw.length; i++) {
+      out += String.fromCharCode(raw.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return out;
+  } catch(e) { return null; }
+}
+
+/* ═══════════ 工具 ═══════════ */
+function $(id){ return document.getElementById(id); }
+var AV_COLORS = ['#7A8B99','#8B7D9B','#99806E','#6E8B7B','#9B7D86','#6E7F9B','#8B9B6E','#9B8B6E'];
+var toastTimer = null;
+function showToast(msg, isErr){
+  var el = $('toast');
+  el.textContent = msg;
+  el.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ el.className = ''; }, isErr ? 6000 : 2600);
+}
+function two(n){ return n < 10 ? '0'+n : ''+n; }
+function timeStr(ts){
+  var d = new Date(ts), now = new Date();
+  var hm = two(d.getHours()) + ':' + two(d.getMinutes());
+  if (d.toDateString() === now.toDateString()) return hm;
+  return (d.getMonth()+1) + '月' + d.getDate() + '日 ' + hm;
+}
+function avatarColor(str){
+  var n = 0;
+  for (var i = 0; i < str.length; i++) n += str.charCodeAt(i);
+  return AV_COLORS[n % AV_COLORS.length];
+}
+function avatarEl(name, key, small){
+  var el = document.createElement('div');
+  el.className = small ? 'm-avatar' : 'avatar';
+  el.style.background = avatarColor(String(key || name || '?'));
+  el.textContent = String(name || '?').charAt(0).toUpperCase();
+  return el;
+}
+function openModal(id){ $(id).hidden = false; }
+function closeModal(id){ $(id).hidden = true; }
+function copyText(text, okMsg){
+  function fallback(){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast(okMsg); }
+    catch(e) { showToast('复制失败，请手动复制：' + text, true); }
+    document.body.removeChild(ta);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function(){ showToast(okMsg); }, fallback);
+  } else fallback();
+}
+
+/* ═══════════ 本地数据 ═══════════ */
+var DB_KEY = 'azchat_v5', SES_KEY = 'azchat_session_v5';
+function loadDB(){
+  try { return JSON.parse(storage.getItem(DB_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveDB(d){ storage.setItem(DB_KEY, JSON.stringify(d)); }
+function meRec(){ return loadDB()[me]; }
+function saveMe(rec){ var d = loadDB(); d[me] = rec; saveDB(d); }
+function findNameByUid(uid){
+  var db = loadDB();
+  for (var n in db) { if (db[n].uid === uid) return n; }
+  return null;
+}
+
+var me = null, myUid = null, peer = null;
+var conns = {}, unread = {}, currentChat = null;
+
+/* ═══════════ 启动：有会话直接进入聊天 ═══════════ */
+(function(){
+  try {
+    var u = storage.getItem(SES_KEY);
+    if (u && loadDB()[u]) { enterApp(u); return; }
+  } catch(e) {}
+  $('authView').hidden = false;
+})();
+
+/* ═══════════ 登录 / 注册 ═══════════ */
+var regMode = false;
+function setMode(r){
+  regMode = r;
+  $('tabLogin').className = r ? '' : 'on';
+  $('tabReg').className = r ? 'on' : '';
+  $('fUidWrap').hidden = r;
+  $('fUserWrap').hidden = !r;
+  $('fPass2Wrap').hidden = !r;
+  $('rememberRow').style.display = r ? 'none' : 'flex';
+  $('authSubmit').textContent = r ? '注册并获取 ID' : '进入';
+  $('formErr').textContent = '';
+}
+ $('tabLogin').onclick = function(){ setMode(false); };
+ $('tabReg').onclick = function(){ setMode(true); };
+
+ $('fUid').oninput = function(e){
+  var v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (v.slice(0,2) === 'AZ') v = v.slice(2);
+  v = v.slice(0, 8);
+  e.target.value = v ? 'AZ' + v : '';
+};
+
+ $('authForm').onsubmit = function(e){
+  e.preventDefault();
+  try {
+    var err = $('formErr');
+    var pass = $('fPass').value;
+    if (pass.length < 6) { err.textContent = '密码至少 6 位'; return; }
+    var db = loadDB();
+
+    if (regMode) {
+      var name = $('fUser').value.replace(/^\s+|\s+$/g, '');
+      if (name.length < 2) { err.textContent = '昵称至少 2 个字符'; return; }
+      if ($('fPass2').value !== pass) { err.textContent = '两次输入的密码不一致'; return; }
+      if (db[name]) { err.textContent = '该昵称已被注册（本机）'; return; }
+      var salt = randHex(8);
+      var uid = 'AZ' + sha256('azchat-id::' + name + salt).slice(0, 8).toUpperCase();
+      db[name] = { salt: salt, hash: sha256(salt + pass), uid: uid, contacts: {}, chats: {} };
+      saveDB(db);
+      showToast('注册成功！你的 ID：' + uid);
+      enterApp(name);
+    } else {
+      var m = $('fUid').value.match(/^AZ([0-9A-Z]{8})$/);
+      if (!m) { err.textContent = '请输入完整的 ID，格式为 AZ + 8 位字符'; return; }
+      var loginUid = 'AZ' + m[1];
+      var loginName = findNameByUid(loginUid);
+      if (!loginName) { err.textContent = '该 ID 未在本机注册过，请先注册（或从原设备备份后在本机导入）'; return; }
+      var r2 = db[loginName];
+      if (sha256(r2.salt + pass) !== r2.hash) { err.textContent = '密码错误'; return; }
+      if ($('fRemember').checked) {
+        var enc = encPass(pass);
+        if (enc) { r2.remembered = true; r2.encPass = enc; }
+        var d2 = loadDB(); d2[loginName] = r2; saveDB(d2);
+      }
+      enterApp(loginName);
+      showToast('欢迎回来，' + loginName);
+    }
+  } catch(ex) {
+    $('formErr').textContent = '出错了：' + ex.message;
+  }
+};
+
+function enterApp(name){
+  me = name;
+  myUid = loadDB()[name].uid;
+  try { storage.setItem(SES_KEY, name); } catch(e) {}
+  $('myUid').textContent = myUid;
+  $('authView').hidden = true;
+  $('appView').hidden = false;
+  unread = {}; currentChat = null; conns = {};
+  showEmptyChat();
+  renderContacts();
+  setNet('off');
+  ensurePeerJS(function(ok){
+    if (!ok) { setNet('err'); showToast('无法加载 P2P 组件（PeerJS），请检查网络后刷新', true); return; }
+    startPeer();
+  });
+}
+
+ $('btnLogout').onclick = function(){
+  if (!confirm('退出后下次打开需要重新输入 ID 和密码，确定退出？')) return;
+  if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
+  try { storage.removeItem(SES_KEY); } catch(e) {}
+  me = null;
+  $('appView').hidden = true;
+  $('authView').hidden = false;
+  $('fPass').value = ''; $('fPass2').value = ''; $('fUid').value = ''; $('fUser').value = '';
+  setMode(false);
+};
+
+ $('btnCopyUid').onclick = function(){ copyText(myUid, '已复制我的 ID：' + myUid); };
+
+/* ═══════════ PeerJS 加载（内置 + 双 CDN 兜底） ═══════════ */
+var PEER_CDNS = [
+  'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
+];
+function ensurePeerJS(cb){
+  if (typeof Peer !== 'undefined') { cb(true); return; }
+  var idx = 0;
+  function tryNext(){
+    if (idx >= PEER_CDNS.length) { cb(false); return; }
+    var s = document.createElement('script');
+    s.src = PEER_CDNS[idx++];
+    s.onload = function(){ cb(typeof Peer !== 'undefined'); };
+    s.onerror = function(){ tryNext(); };
+    document.head.appendChild(s);
+  }
+  tryNext();
+}
+
+/* ═══════════ 信令状态指示 ═══════════ */
+function setNet(state){
+  var el = $('netStatus');
+  if (!el) return;
+  if (state === 'on') {
+    el.innerHTML = '<span style="color:var(--green)">● 已连接信令服务器</span>，可加好友 / 收发消息';
+  } else if (state === 'err') {
+    el.innerHTML = '<span style="color:var(--unread)">● 信令连不上！</span>你的网络受限，请换网络（如手机热点）后刷新重试';
+  } else {
+    el.innerHTML = '<span style="color:#C8A415">● 正在连接信令服务器…</span>';
+  }
+}
+
+/* ═══════════ Peer 层配置（多 STUN + TURN 中继兜底） ═══════════ */
+function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
+function peerOpts(){
+  return {
+    debug: 1,
+    config: {
+      iceServers: [
+        /* STUN：获取公网映射地址，用于打洞直连 */
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' },
+        { urls: 'stun:stun.miwifi.com:3478' },
+        /* TURN 中继：直连失败时兜底转发，保证能建立连接
+           （消息仍经 DTLS 加密，中继看不到明文） */
+        { urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+          username: 'openrelayproject', credential: 'openrelayproject' }
+      ],
+      iceCandidatePoolSize: 10
     }
   };
-  pc.createOffer().then(function(o){return pc.setLocalDescription(o);});
-});
+}
+function startPeer(){
+  if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
+  setNet('off');
+  var opened = false;
+  peer = new Peer(peerIdOf(myUid), peerOpts());
+  /* 12 秒连不上信令就明确报错，避免无限等待 */
+  setTimeout(function(){
+    if (!opened) { setNet('err'); showToast('连接信令服务器超时，请检查网络（可尝试手机热点）', true); }
+  }, 12000);
+  peer.on('open', function(){
+    opened = true;
+    setNet('on');
+    updateChatStatus();
+  });
+  peer.on('connection', bindIncoming);
+  peer.on('disconnected', function(){
+    setNet('off');
+    try { peer.reconnect(); } catch(e) {}
+  });
+  peer.on('error', function(e){
+    var t = e && e.type;
+    if (t === 'unavailable-id') {
+      showToast('该账号已在其他窗口登录，本窗口以临时身份运行', true);
+      peer = new Peer(peerIdOf(myUid) + '-' + randHex(2), peerOpts());
+      peer.on('connection', bindIncoming);
+      peer.on('disconnected', function(){ try { peer.reconnect(); } catch(e2) {} });
+    } else if (t === 'network' || t === 'server-error' || t === 'socket-error' || t === 'socket-closed') {
+      setNet('err');
+      /* 30 秒后自动重试一次 */
+      setTimeout(function(){
+        if (peer && !peer.open && me) { try { peer.reconnect(); } catch(e2) {} }
+      }, 30000);
+    }
+  });
+}
+
+function bindIncoming(c){
+  c.on('data', function(d){
+    try {
+      if (!d || typeof d !== 'object' || !d.uid) return;
+      var uid = String(d.uid);
+      if (d.t === 'add') { handleAddReq(c, uid, d.name); return; }
+      var rec = meRec();
+      if (!rec || !rec.contacts[uid]) return;   // 非好友消息一律丢弃
+      if (!conns[uid]) { conns[uid] = c; updateChatStatus(); }
+      if (d.t === 'chat' && typeof d.text === 'string') {
+        receiveMsg(uid, String(d.text).slice(0, 2000), d.ts || Date.now());
+      }
+    } catch(e) { showToast('处理消息出错：' + e.message, true); }
+  });
+  c.on('close', function(){
+    for (var u in conns) { if (conns[u] === c) delete conns[u]; }
+    updateChatStatus();
+  });
+}
+
+/* ═══════════ 添加好友 ═══════════ */
+ $('btnAddFriend').onclick = function(){
+  $('addErr').textContent = '';
+  $('addInput').value = '';
+  if (peer && !peer.open) {
+    showToast('你的页面还没连上信令服务器，请看侧栏状态提示，连上后再试', true);
+    return;
+  }
+  openModal('addModal');
+  $('addInput').focus();
+};
+ $('addInput').oninput = function(e){
+  var v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (v.slice(0,2) === 'AZ') v = v.slice(2);
+  v = v.slice(0, 8);
+  e.target.value = v ? 'AZ' + v : '';
+};
+ $('btnDoAdd').onclick = function(){
+  var err = $('addErr');
+  var m = $('addInput').value.match(/^AZ([0-9A-Z]{8})$/);
+  if (!m) { err.textContent = 'ID 格式不正确，应为 AZ + 8 位字符'; return; }
+  var uid = 'AZ' + m[1];
+  if (uid === myUid) { err.textContent = '这是你自己的 ID 呀'; return; }
+  if (meRec().contacts[uid]) { err.textContent = '对方已在你的好友列表中'; return; }
+  if (!peer || !peer.open) {
+    err.textContent = '你的页面未连上信令服务器（见侧栏提示），无法发起请求';
+    return;
+  }
+  err.textContent = '';
+  closeModal('addModal');
+  sendAddReq(uid);
+};
+
+function sendAddReq(uid){
+  showToast('正在寻找对方…（最多等 15 秒）');
+  /* 复用主 Peer 发起（已配置好 STUN/TURN） */
+  var c = peer.connect(peerIdOf(uid), { reliable: true });
+  var done = false;
+  function finish(){
+    if (done) return;
+    done = true;
+    try { c.close(); } catch(e) {}
+  }
+  var timer = setTimeout(function(){
+    if (!done) {
+      showToast('对方不在线或 ID 不存在。注意：对方必须在自己的设备上注册，并保持页面打开', true);
+      finish();
+    }
+  }, 15000);
+  c.on('open', function(){ c.send({ t: 'add', uid: myUid, name: me }); });
+  c.on('data', function(d){
+    clearTimeout(timer); finish();
+    if (d && d.t === 'addok') {
+      var rec = meRec();
+      rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16) };
+      saveMe(rec);
+      renderContacts();
+      showToast('已添加 ' + rec.contacts[uid].name + '，开始聊天吧');
+    } else {
+      showToast('对方拒绝了你的好友请求', true);
+    }
+  });
+  c.on('error', function(){
+    clearTimeout(timer);
+    if (!done) { showToast('连接失败，请稍后重试', true); finish(); }
+  });
+}
+
+var reqQueue = [], reqShowing = false;
+function handleAddReq(c, uid, name){
+  var rec = meRec();
+  if (rec.contacts[uid]) {
+    try { c.send({ t: 'addok', uid: myUid, name: me }); } catch(e) {}
+    return;
+  }
+  reqQueue.push({ c: c, uid: uid, name: String(name || uid).slice(0, 16) });
+  nextReq();
+}
+function nextReq(){
+  if (reqShowing || !reqQueue.length) return;
+  reqShowing = true;
+  var r = reqQueue.shift();
+  $('reqName').textContent = r.name;
+  $('reqUid').textContent = r.uid;
+  $('reqText').textContent = '「' + r.name + '」请求添加你为好友。接受后你们即可点对点聊天。';
+  var av = $('reqAvatar');
+  av.style.background = avatarColor(r.uid);
+  av.textContent = r.name.charAt(0).toUpperCase();
+  openModal('reqModal');
+  $('btnAccept').onclick = function(){
+    closeModal('reqModal');
+    var rec = meRec();
+    rec.contacts[r.uid] = { uid: r.uid, name: r.name };
+    saveMe(rec);
+    renderContacts();
+    try { r.c.send({ t: 'addok', uid: myUid, name: me }); } catch(e) {}
+    conns[r.uid] = r.c;
+    updateChatStatus();
+    showToast('已添加 ' + r.name);
+    reqShowing = false;
+    nextReq();
+  };
+  $('btnReject').onclick = function(){
+    closeModal('reqModal');
+    try { r.c.send({ t: 'addno', uid: myUid }); r.c.close(); } catch(e) {}
+    reqShowing = false;
+    nextReq();
+  };
+}
+
+/* ═══════════ 好友列表 ═══════════ */
+function lastTs(rec, uid){
+  var ch = rec.chats[uid];
+  if (!ch || !ch.length) return 0;
+  return ch[ch.length - 1].ts || 0;
+}
+function renderContacts(){
+  var box = $('contactList');
+  box.innerHTML = '';
+  var rec = meRec();
+  if (!rec) return;
+  var list = [];
+  for (var uid in rec.contacts) list.push(rec.contacts[uid]);
+  list.sort(function(a, b){ return lastTs(rec, b.uid) - lastTs(rec, a.uid); });
+
+  if (!list.length) {
+    var empty = document.createElement('div');
+    empty.className = 'c-empty';
+    empty.innerHTML = '还没有好友<br>点击上方「添加好友」<br>凭对方的 AzChat ID 添加<br><span style="font-size:11px;color:#B8B8B8">（双方需同时在线）</span>';
+    box.appendChild(empty);
+    return;
+  }
+  list.forEach(function(f){
+    var item = document.createElement('div');
+    item.className = 'c-item' + (currentChat === f.uid ? ' on' : '');
+    item.appendChild(avatarEl(f.name, f.uid));
+    var info = document.createElement('div');
+    info.className = 'c-info';
+    var n = document.createElement('div'); n.className = 'c-name'; n.textContent = f.name;
+    var u = document.createElement('div'); u.className = 'c-uid'; u.textContent = f.uid;
+    info.appendChild(n); info.appendChild(u);
+    item.appendChild(info);
+    if (unread[f.uid]) {
+      var dot = document.createElement('div');
+      dot.className = 'c-dot';
+      dot.textContent = unread[f.uid] > 99 ? '99+' : unread[f.uid];
+      item.appendChild(dot);
+    }
+    item.onclick = (function(uid2){ return function(){ openChat(uid2); }; })(f.uid);
+    box.appendChild(item);
+  });
+}
+
+/* ═══════════ 聊天 ═══════════ */
+function showEmptyChat(){ $('chatEmpty').hidden = false; $('chatBox').hidden = true; }
+function openChat(uid){
+  var f = meRec().contacts[uid];
+  if (!f) return;
+  currentChat = uid;
+  unread[uid] = 0;
+  $('chatEmpty').hidden = true;
+  $('chatBox').hidden = false;
+  $('chatPane').className = 'open';
+  $('chName').textContent = f.name;
+  $('chUid').textContent = uid;
+  renderMsgs();
+  renderContacts();
+  updateChatStatus();
+  ensureConn(uid, null);
+  $('msgInput').focus();
+}
+ $('btnBack').onclick = function(){
+  $('chatPane').className = '';
+  currentChat = null;
+  showEmptyChat();
+};
+
+function renderMsgs(){
+  var box = $('msgs');
+  box.innerHTML = '';
+  var rec = meRec();
+  var hist = rec.chats[currentChat] || [];
+  var f = rec.contacts[currentChat];
+  var lastSeen = 0;
+  hist.forEach(function(m){
+    if (m.ts - lastSeen > 5 * 60 * 1000) {
+      var div = document.createElement('div');
+      div.className = 't-div';
+      div.textContent = timeStr(m.ts);
+      box.appendChild(div);
+    }
+    lastSeen = m.ts;
+    var row = document.createElement('div');
+    row.className = 'm-row ' + (m.w === 'me' ? 'me' : 'them');
+    row.appendChild(avatarEl(m.w === 'me' ? me : f.name, m.w === 'me' ? myUid : currentChat, true));
+    var bub = document.createElement('div');
+    bub.className = 'm-bubble';
+    bub.textContent = m.text;
+    row.appendChild(bub);
+    box.appendChild(row);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+function updateChatStatus(){
+  if (!currentChat) return;
+  var on = conns[currentChat] && conns[currentChat].open;
+  $('chDot').className = 'dot' + (on ? ' live' : '');
+  $('chStatus').textContent = on ? 'P2P 已连接' : '未连接';
+}
+
+function receiveMsg(uid, text, ts){
+  var rec = meRec();
+  if (!rec.chats[uid]) rec.chats[uid] = [];
+  rec.chats[uid].push({ w: 'them', text: text, ts: ts });
+  saveMe(rec);
+  if (currentChat === uid) renderMsgs();
+  else {
+    unread[uid] = (unread[uid] || 0) + 1;
+    showToast(rec.contacts[uid].name + '：' + text.slice(0, 20));
+  }
+  renderContacts();
+}
+
+function ensureConn(uid, cb){
+  var c = conns[uid];
+  if (c && c.open) { if (cb) cb(c); return; }
+  updateChatStatus();
+  if (!peer || !peer.open) {
+    showToast('信令未连接（见侧栏状态），请稍候重试', true);
+    return;
+  }
+  var nc = peer.connect(peerIdOf(uid), { reliable: true });
+  var opened = false;
+  /* 带 TURN 后走中继会慢几秒，超时给到 20 秒 */
+  var timer = setTimeout(function(){
+    if (!opened) {
+      showToast('对方不在线，无法送达。对方需保持页面打开', true);
+      try { nc.close(); } catch(e) {}
+      updateChatStatus();
+    }
+  }, 20000);
+  nc.on('open', function(){
+    opened = true;
+    clearTimeout(timer);
+    conns[uid] = nc;
+    updateChatStatus();
+    if (cb) cb(nc);
+  });
+  nc.on('error', function(){
+    clearTimeout(timer);
+    showToast('对方不在线，无法送达', true);
+    updateChatStatus();
+  });
+  nc.on('close', function(){
+    delete conns[uid];
+    updateChatStatus();
+  });
+}
+
+function sendMsg(){
+  var input = $('msgInput');
+  var text = input.value.replace(/^\s+|\s+$/g, '');
+  if (!text || !currentChat) return;
+  var uid = currentChat;
+  input.value = '';
+  var rec = meRec();
+  if (!rec.chats[uid]) rec.chats[uid] = [];
+  var ts = Date.now();
+  rec.chats[uid].push({ w: 'me', text: text, ts: ts });
+  saveMe(rec);
+  renderMsgs();
+  ensureConn(uid, function(c){
+    try { c.send({ t: 'chat', uid: myUid, text: text, ts: ts }); }
+    catch(e) { showToast('发送失败，对方可能已离线', true); }
+  });
+}
+ $('btnSend').onclick = sendMsg;
+ $('msgInput').onkeydown = function(e){
+  if (e.key === 'Enter') { e.preventDefault(); sendMsg(); }
+};
+
+var closeBtns = document.querySelectorAll('.modal-close');
+for (var i = 0; i < closeBtns.length; i++) {
+  (function(btn){
+    btn.onclick = function(){ closeModal(btn.getAttribute('data-close')); };
+  })(closeBtns[i]);
+}
+
+/* ═══════════ 备份 / 导入 ═══════════ */
+ $('btnBackup').onclick = function(){
+  try {
+    var data = { app: 'azchat', ver: 1, db: storage.getItem(DB_KEY) };
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'azchat-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+    showToast('备份文件已开始下载，请查看浏览器下载列表');
+  } catch(e) {
+    showToast('备份失败：' + e.message, true);
+  }
+};
+ $('btnImport').onclick = function(){ $('importFile').click(); };
+ $('importFile').onchange = function(){
+  var f = this.files[0];
+  if (!f) return;
+  var r = new FileReader();
+  r.onload = function(){
+    try {
+      var data = JSON.parse(r.result);
+      if (!data || data.app !== 'azchat' || !data.db) { showToast('备份文件格式不正确', true); return; }
+      if (!confirm('导入会合并本机数据（同名账号将被备份覆盖），确定继续？')) return;
+      var cur = JSON.parse(storage.getItem(DB_KEY) || '{}');
+      var back = JSON.parse(data.db);
+      var count = 0;
+      for (var n in back) { cur[n] = back[n]; count++; }
+      storage.setItem(DB_KEY, JSON.stringify(cur));
+      showToast('导入成功，共 ' + count + ' 个账号（首次登录需重输密码）');
+    } catch(e) {
+      showToast('导入失败：' + e.message, true);
+    }
+  };
+  r.readAsText(f);
+  this.value = '';
+};
+
+if (storageIsMemory) {
+  setTimeout(function(){ showToast('当前环境禁止本地存储，无法记住登录状态', true); }, 800);
+}
 </script>
 </body>
 </html>
