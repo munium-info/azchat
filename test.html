@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AzChat 连接诊断</title>
+<style>
+body{font:15px/1.8 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#222}
+h3{margin:28px 0 10px}
+.step{background:#F6F6F6;border-radius:8px;padding:12px 16px;margin:8px 0}
+.ok{color:#07C160;font-weight:600}.bad{color:#D93025;font-weight:600}.wait{color:#999}
+input{padding:10px;font-size:15px;width:180px;border:1px solid #ccc;border-radius:6px}
+button{padding:10px 18px;font-size:14px;background:#07C160;color:#fff;border:none;border-radius:6px;margin-left:8px;cursor:pointer}
+code{background:#EEE;padding:2px 6px;border-radius:4px;font-size:13px}
+</style></head>
+<body>
+
+<h2>🔍 AzChat 连接诊断</h2>
+<p>本页不登录、不注册，专门测试 P2P 链路每一层是否通。</p>
+
+<div class="step" id="s1">① PeerJS 库加载：<span class="wait">检测中…</span></div>
+<div class="step" id="s2">② 信令服务器连接：<span class="wait">检测中…</span></div>
+<div class="step" id="s3">③ 我的测试码：<span class="wait">生成中…</span></div>
+<div class="step" id="s4">④ 双向连通测试：
+  <div style="margin-top:8px">
+    <input id="peerCode" placeholder="输入对方测试码">
+    <button id="btnConn">连接对方</button>
+    <span id="connResult"></span>
+  </div>
+</div>
+<div class="step" id="s5">⑤ 网络类型检测：<span class="wait">连接后检测…</span></div>
+
+<div style="margin-top:24px;background:#FFF8E1;border-radius:8px;padding:14px 16px;font-size:13.5px">
+<b>怎么测：</b>两个设备（或两个不同网络的浏览器）各开本页 →
+<b>设备A</b> 把测试码告诉<b>设备B</b> → B 输入后点「连接对方」→
+两边都显示 <b>✅ 双向打通</b> 即链路正常（那问题就在主程序的账号逻辑）；
+如果卡在 ② 或 ④，把本页显示的结果 + F12 控制台红字截图发出来。
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+function set(id, html){ document.querySelector('#'+id+' span').innerHTML = html; }
+var myPeer = null, myCode = null, others = {};
+
+/* ① 库 */
+if (typeof Peer === 'undefined') {
+  set('s1','<span class="bad">❌ 加载失败！CDN 被墙/无网。这是最底层问题</span>');
+} else {
+  set('s1','<span class="ok">✅ 已加载</span>');
+  /* ② 信令 */
+  myCode = Math.random().toString(36).slice(2,6).toUpperCase();
+  myPeer = new Peer('azdiag-' + myCode.toLowerCase(), {
+    config:{ iceServers:[
+      {urls:'stun:stun.l.google.com:19302'},
+      {urls:'stun:stun.cloudflare.com:3478'},
+      {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443'],
+       username:'openrelayproject', credential:'openrelayproject'},
+      {urls:'turn:openrelay.metered.ca:443?transport=tcp',
+       username:'openrelayproject', credential:'openrelayproject'}
+    ]}
+  });
+  var signalOk = false;
+  myPeer.on('open', function(){
+    signalOk = true;
+    set('s2','<span class="ok">✅ 已连接</span>');
+    set('s3','<span class="ok" style="font-size:20px;letter-spacing:2px">'+myCode+'</span> <small style="color:#999">（告诉对方）</small>');
+  });
+  myPeer.on('disconnected', function(){
+    if (signalOk) set('s2','<span class="bad">❌ 连接中断</span>');
+    try{ myPeer.reconnect(); }catch(e){}
+  });
+  myPeer.on('error', function(e){
+    set('s2','<span class="bad">❌ 信令失败：'+e.type+'</span>');
+    if (e.type==='peer-unavailable') set('connResult','<span class="bad">对方测试码不存在</span>');
+  });
+  /* ④ 被动接收 */
+  myPeer.on('connection', function(c){
+    c.on('data', function(d){
+      if (d.t==='ping'){ c.send({t:'pong'}); note(c.peer, true); }
+    });
+    c.on('open', function(){ c.send({t:'ping'}); });
+  });
+}
+
+var gotPing=false, gotPong=false;
+function note(peerId, asReceiver){
+  if (asReceiver) gotPing=true; else gotPong=true;
+  var msg = (gotPing?'收到对方消息 ✅ ':'') + (gotPong?'已回复对方 ✅':'');
+  if (gotPing||gotPong) set('s4', '④ 双向连通测试：'+msg+' <b>🎉 链路完全正常！</b>');
+}
+
+document.getElementById('btnConn').onclick = function(){
+  var code = document.getElementById('peerCode').value.trim().toUpperCase();
+  if (!myPeer || !myPeer.open) { set('connResult','<span class="bad">信令还没连上，无法发起</span>'); return; }
+  if (code.length!==4) { set('connResult','<span class="bad">测试码是 4 位</span>'); return; }
+  set('connResult','<span class="wait">连接中…最多等15秒</span>');
+  var c = myPeer.connect('azdiag-'+code.toLowerCase());
+  var done=false;
+  var timer=setTimeout(function(){ if(!done) set('connResult','<span class="bad">❌ 超时：信令通但 WebRTC 打洞失败（通常是严格NAT，双方换网络再试；若诊断页带TURN仍失败，需要自建TURN）</span>'); },15000);
+  c.on('open', function(){
+    c.send({t:'ping'});
+    c.on('data', function(d){ if(d.t==='pong'){ done=true; clearTimeout(timer); gotPong=true; note(code,true); } });
+  });
+  c.on('error', function(){ clearTimeout(timer); set('connResult','<span class="bad">连接出错</span>'); });
+};
+
+/* ⑤ 简易NAT类型提示 */
+myPeer && myPeer.on('open', function(){
+  var pc = new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+  var cands=[];
+  pc.createDataChannel('x');
+  pc.onicecandidate = function(e){
+    if (e.candidate) cands.push(e.candidate.candidate);
+    else {
+      var hasSrflx = cands.some(function(c){return c.indexOf('typ srflx')>-1;});
+      var hasRelay = cands.some(function(c){return c.indexOf('typ relay')>-1;});
+      var host = cands.some(function(c){return c.indexOf('typ host')>-1;});
+      var s = host?'可获取本机地址 ':'';
+      s += hasSrflx?'可获取公网映射地址(STUN正常) ':'';
+      s += hasRelay?'TURN可用 ':'无TURN';
+      set('s5','<span class="'+(hasSrflx?'ok':'bad')+'">'+(hasSrflx?'✅':'❌')+' '+s+'</span>'+
+        '<br><small style="color:#888">没有 srflx = 你的网络完全封锁了UDP（公司/校园网常见），只能靠TURN或换网络</small>');
+    }
+  };
+  pc.createOffer().then(function(o){return pc.setLocalDescription(o);});
+});
+</script>
+</body>
+</html>
