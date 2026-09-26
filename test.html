@@ -47,7 +47,6 @@
   #toast.show{transform:translate(-50%,0)}
   #toast.err{border-color:var(--unread);color:var(--unread)}
 
-  /* ══ 右键菜单 ══ */
   #ctxMenu{position:fixed;z-index:800;background:var(--bg2);border:1px solid var(--line);
     border-radius:12px;padding:6px;min-width:150px;box-shadow:var(--shadow-lg);
     animation:ctxIn .15s ease}
@@ -57,11 +56,10 @@
   .ctx-item:hover{background:rgba(7,193,96,.08)}
   .ctx-item.danger{color:var(--unread)}
   .ctx-item.danger:hover{background:rgba(250,81,81,.08)}
-  .ctx-item .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;
-    stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .ctx-item .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round}
   .ctx-sep{height:1px;background:var(--line);margin:5px 8px}
 
-  /* ══ 登录 ══ */
   #authView{height:100%;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
   .auth-card{width:100%;max-width:360px}
   .logo{width:64px;height:64px;border-radius:18px;margin:0 auto 18px;
@@ -88,7 +86,6 @@
   .tabs button.on{background:var(--bg2);color:var(--ink);font-weight:600;box-shadow:var(--shadow)}
   .auth-note{margin-top:28px;font-size:11.5px;color:var(--sub);text-align:center;line-height:2}
 
-  /* ══ 主界面 ══ */
   #appView{height:100%;display:flex}
   #sidebar{width:290px;background:var(--bg2);border-right:1px solid var(--line);
     display:flex;flex-direction:column;flex-shrink:0}
@@ -681,11 +678,11 @@ function decPass(stored){
   } catch(e) { return null; }
 }
 
-/* ═══════════ 防御式 $：元素缺失时不崩溃（修复 null.onclick 报错） ═══════════ */
+/* ═══════════ 防御式 $ ═══════════ */
 function $(id){
   var el = document.getElementById(id);
   if (el) return el;
-  console.warn('[AzChat] 元素不存在：#' + id + '（相关功能已跳过）');
+  console.warn('[AzChat] 元素不存在：#' + id);
   return {
     hidden: true, disabled: false, value: '', textContent: '', innerHTML: '',
     style: {}, dataset: {},
@@ -771,7 +768,7 @@ function displayName(rec, uid, fallback){
   return fallback || (f ? f.name : uid);
 }
 
-/* ═══════════ SVG 图标（界面图标，无 emoji） ═══════════ */
+/* ═══════════ SVG 图标 ═══════════ */
 var ICONS = {
   copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
   recall: '<svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>',
@@ -790,13 +787,13 @@ var ICONS = {
   pause: '<svg viewBox="0 0 24 24"><path d="M7 4v16M17 4v16"/></svg>',
   invite: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>'
 };
-function icHTML(name){
-  return '<span class="ic" style="display:inline-flex;width:15px;height:15px;flex-shrink:0">' +
-         (ICONS[name] || '') + '</span>';
-}
 function icSvg(name){
   return '<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block">' +
          (ICONS[name] || '') + '</svg>';
+}
+function icHTML(name){
+  return '<span class="ic" style="display:inline-flex;width:15px;height:15px;flex-shrink:0">' +
+         (ICONS[name] || '') + '</span>';
 }
 
 /* ═══════════ 主题切换 ═══════════ */
@@ -816,7 +813,6 @@ function updateThemeBtn(){
 };
 updateThemeBtn();
 
-/* 静态图标填充 */
  $('annIc').innerHTML = icSvg('announce');
  $('invIc').innerHTML = icSvg('invite');
  $('leaveIc').innerHTML = icSvg('leave');
@@ -825,7 +821,33 @@ updateThemeBtn();
  $('clrIc').innerHTML = icSvg('clear');
  $('delIc').innerHTML = icSvg('del');
 
-/* ═══════════ 自定义右键菜单 ═══════════ */
+/* ═══════════ 消息去重（核心修复：防重复投递） ═══════════
+   同一条消息可能经 P2P / 云端信箱 / 群主转发多条路径到达，
+   以（发送者 + 时间戳）为唯一标识，重复一律丢弃 */
+var msgSeen = {};    /* 会话内已收消息：key -> {"from|ts":1} */
+var fwdSeen = {};    /* 群主已转发：gid -> {"from|ts":1} */
+function isDupMsg(key, from, ts){
+  var sk = from + '|' + ts;
+  var s = msgSeen[key];
+  if (s && s[sk]) return true;
+  if (!s) s = msgSeen[key] = {};
+  s[sk] = 1;
+  var n = 0, kk;
+  for (kk in s) { n++; if (n > 500) delete s[kk]; }
+  return false;
+}
+function isDupFwd(gid, from, ts){
+  var sk = from + '|' + ts;
+  var s = fwdSeen[gid];
+  if (s && s[sk]) return true;
+  if (!s) s = fwdSeen[gid] = {};
+  s[sk] = 1;
+  var n = 0, kk;
+  for (kk in s) { n++; if (n > 500) delete s[kk]; }
+  return false;
+}
+
+/* ═══════════ 右键菜单 ═══════════ */
 function hideCtxMenu(){ $('ctxMenu').hidden = true; }
 document.addEventListener('click', hideCtxMenu);
 document.addEventListener('scroll', hideCtxMenu, true);
@@ -1053,6 +1075,9 @@ function cloudFetch(){
         fresh.push(row);
       });
       if (!fresh.length) return;
+      /* 先删除云端记录，再处理：防止处理期间刷新导致重投（重复） */
+      var ids = fresh.map(function(r){ return r.id; });
+      sbClient.from(SB_TABLE).delete().in('id', ids).then(function(){});
       var count = 0;
       fresh.forEach(function(row){
         try {
@@ -1060,8 +1085,6 @@ function cloudFetch(){
           count++;
         } catch(e) {}
       });
-      var ids = fresh.map(function(r){ return r.id; });
-      sbClient.from(SB_TABLE).delete().in('id', ids).then(function(){});
       if (count > 0) showToast('已收到 ' + count + ' 条消息（云端）');
       flushOutbox();
     });
@@ -1498,7 +1521,7 @@ function startPeer(){
   });
 }
 
-/* ═══════════ 统一投递（失败自动重试一次，再失败走云端） ═══════════ */
+/* ═══════════ 统一投递 ═══════════ */
 function queueLocal(toUid, key, payload, msgTs){
   var rec = meRec();
   if (!rec) return;
@@ -1511,7 +1534,6 @@ function deliverOrQueue(toUid, key, payload, msgTs, _retried){
     try { c.send(payload); } catch(e) {}
     markSent(key, msgTs);
   }, function(){
-    /* P2P 直连失败：自动重试一次（解决竞态导致的偶发失败），仍失败走云端信箱 */
     if (!_retried) {
       setTimeout(function(){
         if (!me) return;
@@ -1606,6 +1628,8 @@ function handleData(c, d){
   }
 
   if (d.t === 'recall') {
+    /* 撤回幂等，仅提示去重 */
+    if (isDupMsg('__recall', uid + '|' + d.key, d.ts)) return;
     var rkey = d.key, rts = d.ts;
     if (rec.chats[rkey]) {
       for (var ci = 0; ci < rec.chats[rkey].length; ci++) {
@@ -1680,6 +1704,8 @@ function handleData(c, d){
       if (g1.members[j].uid === uid) { senderIn = true; break; }
     }
     if (!senderIn) return;
+    /* 核心去重：同一（发送者+时间戳）只处理一次 */
+    if (isDupMsg(d.gid, uid, d.ts)) return;
     if (typeof d.audio === 'string' && d.audio.indexOf('data:audio/') === 0 && d.audio.length <= 1200000) {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), audio:d.audio, dur:d.dur||0, mentions:d.mentions||[], ts:d.ts||Date.now() });
     } else if (typeof d.text === 'string') {
@@ -1687,11 +1713,14 @@ function handleData(c, d){
     } else if (typeof d.img === 'string' && d.img.indexOf('data:image/') === 0 && d.img.length <= 500000) {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), img:d.img, mentions:d.mentions||[], ts:d.ts||Date.now() });
     }
+    /* 群主转发：同一消息只转发一次（防放大） */
     if (g1.owner === myUid && uid !== myUid) {
-      g1.members.forEach(function(m){
-        if (m.uid === uid || m.uid === myUid) return;
-        deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, audio:d.audio, dur:d.dur, mentions:d.mentions, gid:d.gid, ts:d.ts }, 0);
-      });
+      if (!isDupFwd(d.gid, uid, d.ts)) {
+        g1.members.forEach(function(m){
+          if (m.uid === uid || m.uid === myUid) return;
+          deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, audio:d.audio, dur:d.dur, mentions:d.mentions, gid:d.gid, ts:d.ts }, 0);
+        });
+      }
     }
     return;
   }
@@ -1811,13 +1840,17 @@ function handleData(c, d){
 
   if (!rec.contacts[uid]) return;
   if (c !== dummyConn && !conns[uid]) { conns[uid] = c; updateChatStatus(); }
+  /* 单聊消息去重 */
   if (d.t === 'chat' && typeof d.text === 'string') {
+    if (isDupMsg(uid, uid, d.ts)) return;
     receiveMsg(uid, { w:'them', text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
   } else if (d.t === 'sticker' && typeof d.img === 'string' && d.img.indexOf('data:image/') === 0) {
     if (d.img.length > 500000) return;
+    if (isDupMsg(uid, uid, d.ts)) return;
     receiveMsg(uid, { w:'them', img:d.img, ts:d.ts||Date.now() });
   } else if (d.t === 'audio' && typeof d.audio === 'string' && d.audio.indexOf('data:audio/') === 0) {
     if (d.audio.length > 1200000) return;
+    if (isDupMsg(uid, uid, d.ts)) return;
     receiveMsg(uid, { w:'them', audio:d.audio, dur:d.dur||0, ts:d.ts||Date.now() });
   }
 }
@@ -2721,6 +2754,9 @@ function receiveMsg(key, msg){
   renderContacts();
 }
 
+/* ═══════════ 连接建立（修复迟到连接导致的重复发送） ═══════════
+   关键：超时判定失败后，迟到的连接一律丢弃，
+   其携带的回调不再触发——否则同一消息会被发两次 */
 function ensureConn(uid, cb, onFail){
   var c = conns[uid];
   if (c && c.open) { if (cb) cb(c); return; }
@@ -2731,15 +2767,23 @@ function ensureConn(uid, cb, onFail){
   }
   var nc = peer.connect(peerIdOf(uid), { reliable: true });
   var opened = false;
+  var finished = false;   /* 本连接的最终状态是否已决 */
   var timer = setTimeout(function(){
-    if (!opened) {
+    if (!opened && !finished) {
+      finished = true;
       try { nc.close(); } catch(e) {}
       updateChatStatus();
       if (onFail) onFail();
     }
   }, 15000);
   nc.on('open', function(){
+    if (finished) {
+      /* 超时后才连上：本次连接作废（重试已另起连接），不能再用旧回调发消息 */
+      try { nc.close(); } catch(e) {}
+      return;
+    }
     opened = true;
+    finished = true;
     clearTimeout(timer);
     conns[uid] = nc;
     updateChatStatus();
@@ -2748,13 +2792,17 @@ function ensureConn(uid, cb, onFail){
     if (cb) cb(nc);
   });
   nc.on('error', function(){
+    if (finished) return;
+    finished = true;
     clearTimeout(timer);
     updateChatStatus();
     if (onFail) onFail();
   });
   nc.on('close', function(){
-    delete conns[uid];
-    updateChatStatus();
+    if (conns[uid] === nc) {
+      delete conns[uid];
+      updateChatStatus();
+    }
   });
 }
 
