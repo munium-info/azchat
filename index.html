@@ -45,6 +45,7 @@
   .btn-primary{width:100%;background:var(--green);color:#fff;border-radius:8px;padding:13px;
     font-size:15px;font-weight:500}
   .btn-primary:hover{opacity:.9}
+  .btn-primary:disabled{opacity:.6;cursor:default}
   .tabs{display:flex;background:#E9E9E9;border-radius:8px;padding:3px;margin-bottom:22px}
   .tabs button{flex:1;padding:9px;border-radius:6px;font-size:13.5px;color:var(--sub)}
   .tabs button.on{background:#fff;color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.06)}
@@ -206,7 +207,7 @@
 <main id="authView" hidden>
   <div class="logo">A</div>
   <div class="auth-title">AzChat</div>
-  <div class="auth-sub">点对点加密聊天 · 对方离线也能收到消息</div>
+  <div class="auth-sub">P2P 加密聊天 · 账号云端保存，任何设备可登录</div>
   <div class="auth-box">
     <div class="tabs">
       <button type="button" id="tabLogin" class="on">登录</button>
@@ -216,6 +217,7 @@
       <div class="field" id="fUidWrap">
         <label>AzChat ID</label>
         <input id="fUid" class="uid-input" type="text" placeholder="AZ + 8 位字符" maxlength="10" autocomplete="off">
+        <div class="hint">本机或云端注册过的 ID 均可登录</div>
       </div>
       <div class="field" id="fUserWrap" hidden>
         <label>昵称</label>
@@ -238,7 +240,7 @@
       <button type="submit" class="btn-primary" id="authSubmit">进入</button>
     </form>
   </div>
-  <p class="auth-note">在线时 P2P 端到端直连<br>对方离线时消息存入云端信箱，上线即收</p>
+  <p class="auth-note">账号保存在云端（只存加盐哈希，不存明文密码）<br>凭 ID + 密码可在任何设备登录</p>
 </main>
 
 <div id="appView" hidden>
@@ -425,7 +427,7 @@
       <input id="pmUid" class="uid-input" type="text" disabled style="background:#F6F6F6;color:var(--sub)">
     </div>
     <div class="form-err" id="pmErr"></div>
-    <button type="button" class="mbtn green" id="btnSaveProfile" style="width:100%">保存</button>
+    <button type="button" class="mbtn green" id="btnSaveProfile" style="width:100%">保存（同步到云端）</button>
   </div>
 </div>
 
@@ -436,12 +438,14 @@
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
-   ★ 云端信箱配置（已填好你的 Supabase 项目） ★
-   前置条件：在 Supabase SQL Editor 执行建表 SQL（见部署说明）
+   ★ 云端配置（已填好你的 Supabase 项目） ★
+   需要两张表：az_mail（离线信箱）和 az_users（云端密码库）
+   建表 SQL 见文件末尾注释 / 部署说明
 ═══════════════════════════════════════════════════════ */
 var SB_URL = 'https://ilhalqmtgjmyfdusyrch.supabase.co';
 var SB_KEY = 'sb_publishable_ksRXPTi9gKaqN1QZVfkKBw_4UZprqWc';
-var SB_TABLE = 'az_mail';
+var SB_TABLE = 'az_mail';       /* 离线消息信箱 */
+var SB_USERS = 'az_users';      /* 云端账号库 */
 
 window.onerror = function(msg, src, line){
   try { showToast('脚本出错：' + msg + '（第 ' + line + ' 行）', true); } catch(e) {}
@@ -615,7 +619,7 @@ function domainOf(u){
   catch(e){ return u; }
 }
 
-/* ═══════════ 本地数据（读取时自动补全字段） ═══════════ */
+/* ═══════════ 本地数据 ═══════════ */
 var DB_KEY = 'azchat_v5', SES_KEY = 'azchat_session_v5';
 function normalizeAccount(rec, name){
   if (!rec || typeof rec !== 'object') return null;
@@ -661,7 +665,7 @@ var me = null, myUid = null, peer = null;
 var conns = {}, unread = {}, currentChat = null, chatType = 'friend';
 var flushTimer = null, cloudTimer = null, cloudChannel = null;
 
-/* ═══════════ 云端信箱（Supabase） ═══════════ */
+/* ═══════════ 云端（Supabase）：信箱 + 账号库 ═══════════ */
 var cloudReady = false, cloudFetching = false;
 var seenCloudIds = {};
 var sbClient = null;
@@ -678,7 +682,6 @@ function initCloud(cb){
     try {
       sbClient = supabase.createClient(SB_URL, SB_KEY);
       cloudReady = true;
-      /* 实时订阅：对方投递消息后秒级触发拉取（失败也不影响轮询兜底） */
       try {
         cloudChannel = sbClient
           .channel('az_mail_' + myUid)
@@ -693,7 +696,62 @@ function initCloud(cb){
   s.onerror = function(){ cb(false); };
   document.head.appendChild(s);
 }
-/* 云端投递：写入对方信箱，对方上线即拉取。成功 → 消息标记已送达 */
+
+/* ── 云端账号库 ── */
+/* 注册：写入 az_users。回调用 err（null=成功） */
+function cloudRegister(rec, cb){
+  if (!sbClient) { cb('云端未连接'); return; }
+  sbClient.from(SB_USERS)
+    .upsert([{
+      uid: rec.uid,
+      name: rec.name,
+      salt: rec.salt,
+      hash: rec.hash,
+      avatar: rec.avatar || ''
+    }], { onConflict: 'uid' })
+    .then(function(res){
+      if (res.error) { cb(res.error.message); return; }
+      cb(null);
+    });
+}
+/* 云端登录：按 uid 查询并校验密码。成功回调整份账号资料 */
+function cloudLogin(uid, pass, cb){
+  if (!sbClient) { cb('云端未连接', null); return; }
+  sbClient.from(SB_USERS)
+    .select('*')
+    .eq('uid', uid)
+    .maybeSingle()
+    .then(function(res){
+      if (res.error) { cb(res.error.message, null); return; }
+      if (!res.data) { cb('notfound', null); return; }
+      var row = res.data;
+      if (sha256(row.salt + pass) !== row.hash) { cb('密码错误', null); return; }
+      cb(null, {
+        uid: row.uid,
+        name: row.name || uid,
+        avatar: row.avatar || '',
+        contacts: row.contacts || {},
+        groups: row.groups || {},
+        chats: row.chats || {},
+        stickers: row.stickers || [],
+        outbox: [],
+        salt: row.salt,
+        hash: row.hash
+      });
+    });
+}
+/* 云端改名/改头像后同步 */
+function cloudUpdateProfile(rec, cb){
+  if (!sbClient) { if (cb) cb('云端未连接'); return; }
+  sbClient.from(SB_USERS)
+    .update({ name: rec.name, avatar: rec.avatar || '' })
+    .eq('uid', rec.uid)
+    .then(function(res){
+      if (cb) cb(res.error ? res.error.message : null);
+    });
+}
+
+/* ── 离线信箱 ── */
 function cloudSend(toUid, payload, key, ts, onFail){
   if (!sbClient) { if (onFail) onFail(); return; }
   sbClient.from(SB_TABLE)
@@ -703,7 +761,6 @@ function cloudSend(toUid, payload, key, ts, onFail){
       markSent(key, ts);
     });
 }
-/* 拉取我的云端信箱：收到即本地入库并删除云端记录 */
 function cloudFetch(){
   if (!sbClient || !me || cloudFetching) return;
   cloudFetching = true;
@@ -736,7 +793,6 @@ function cloudFetch(){
     });
 }
 
-/* 假连接：云端拉取的消息复用 handleData 处理 */
 var dummyConn = { send: function(){}, close: function(){} };
 
 /* ═══════════ 启动 ═══════════ */
@@ -750,6 +806,7 @@ var dummyConn = { send: function(){}, close: function(){} };
 })();
 
 var regMode = false;
+var authBusy = false;
 function setMode(r){
   regMode = r;
   $('tabLogin').className = r ? '' : 'on';
@@ -773,6 +830,7 @@ function setMode(r){
 
  $('authForm').onsubmit = function(e){
   e.preventDefault();
+  if (authBusy) return;
   try {
     var err = $('formErr');
     var pass = $('fPass').value;
@@ -784,30 +842,121 @@ function setMode(r){
       if (name.length < 2) { err.textContent = '昵称至少 2 个字符'; return; }
       if ($('fPass2').value !== pass) { err.textContent = '两次输入的密码不一致'; return; }
       if (db[name]) { err.textContent = '该昵称已被注册（本机）'; return; }
+      authBusy = true;
+      $('authSubmit').disabled = true;
+      $('authSubmit').textContent = '注册中…';
       var salt = randHex(8);
       var uid = 'AZ' + sha256('azchat-id::' + name + salt).slice(0, 8).toUpperCase();
-      db[name] = { salt: salt, hash: sha256(salt + pass), uid: uid, name: name, avatar: '',
-                   contacts: {}, chats: {}, stickers: [], groups: {}, outbox: [] };
+      var rec = { salt: salt, hash: sha256(salt + pass), uid: uid, name: name, avatar: '',
+                  contacts: {}, chats: {}, stickers: [], groups: {}, outbox: [] };
+      /* 先建本地，再上云；云端失败仍可本地用（下次进 app 会重试同步） */
+      db[name] = rec;
       saveDB(db);
-      showToast('注册成功！你的 ID：' + uid);
-      enterApp(name);
+      var finishReg = function(){
+        authBusy = false;
+        $('authSubmit').disabled = false;
+        $('authSubmit').textContent = '注册并获取 ID';
+        showToast('注册成功！你的 ID：' + uid);
+        enterApp(name);
+      };
+      initCloud(function(ok){
+        if (!ok) {
+          showToast('⚠️ 云端不可用，账号仅保存在本机（可稍后备份）', true);
+          finishReg();
+          return;
+        }
+        cloudRegister(rec, function(cerr){
+          if (cerr) showToast('⚠️ 云端注册失败：' + cerr + '（账号已保存在本机）', true);
+          else showToast('✅ 已同步到云端，任何设备凭 ID+密码可登录');
+          finishReg();
+        });
+      });
     } else {
+      /* ── 登录 ── */
       var m = $('fUid').value.match(/^AZ([0-9A-Z]{8})$/);
       if (!m) { err.textContent = '请输入完整的 ID，格式为 AZ + 8 位字符'; return; }
       var loginUid = 'AZ' + m[1];
-      var loginName = findNameByUid(loginUid);
-      if (!loginName) { err.textContent = '该 ID 未在本机注册过，请先注册'; return; }
-      var r2 = db[loginName];
-      if (sha256(r2.salt + pass) !== r2.hash) { err.textContent = '密码错误'; return; }
-      if ($('fRemember').checked) {
-        var enc = encPass(pass);
-        if (enc) { r2.remembered = true; r2.encPass = enc; }
-        var d2 = loadDB(); d2[loginName] = r2; saveDB(d2);
+      authBusy = true;
+      $('authSubmit').disabled = true;
+      $('authSubmit').textContent = '登录中…';
+      var done = function(){
+        authBusy = false;
+        $('authSubmit').disabled = false;
+        $('authSubmit').textContent = '进入';
+      };
+      var localName = findNameByUid(loginUid);
+
+      if (localName) {
+        /* 本机有此账号：本地校验 + 顺手从云端拉最新资料 */
+        var r2 = db[localName];
+        if (sha256(r2.salt + pass) !== r2.hash) {
+          done();
+          err.textContent = '密码错误'; return;
+        }
+        if ($('fRemember').checked) {
+          var enc = encPass(pass);
+          if (enc) { r2.remembered = true; r2.encPass = enc; }
+          var d2 = loadDB(); d2[localName] = r2; saveDB(d2);
+        }
+        initCloud(function(ok){
+          if (ok) {
+            sbClient.from(SB_USERS).select('name,avatar').eq('uid', loginUid).maybeSingle()
+              .then(function(res){
+                if (!res.error && res.data) {
+                  var r3 = loadDB()[localName];
+                  var upd = false;
+                  if (res.data.name && res.data.name !== r3.name) { r3.name = res.data.name; upd = true; }
+                  if (res.data.avatar && res.data.avatar !== r3.avatar) { r3.avatar = res.data.avatar; upd = true; }
+                  if (upd) { var dd = loadDB(); dd[localName] = r3; saveDB(dd); }
+                }
+                done();
+                enterApp(localName);
+                showToast('欢迎回来，' + (loadDB()[localName].name || localName));
+              });
+          } else {
+            done();
+            enterApp(localName);
+            showToast('欢迎回来，' + (r2.name || localName));
+          }
+        });
+      } else {
+        /* 本机没有：查云端密码库，命中则把账号拉下来 */
+        initCloud(function(ok){
+          if (!ok) {
+            done();
+            err.textContent = '该 ID 未在本机注册过，且云端不可用。请先注册'; return;
+          }
+          cloudLogin(loginUid, pass, function(cerr, acct){
+            if (cerr) {
+              done();
+              if (cerr === 'notfound') err.textContent = '该 ID 在本机和云端都不存在，请先注册';
+              else err.textContent = '云端查询失败：' + cerr;
+              return;
+            }
+            /* 以云端资料在本机建号。本机显示名 = 昵称去重 */
+            var baseName = acct.name || loginUid;
+            var localKey = baseName;
+            var n = 2;
+            while (db[localKey]) { localKey = baseName + '_' + n; n++; }
+            acct.name = localKey;
+            var cur = loadDB();
+            cur[localKey] = acct;
+            saveDB(cur);
+            if ($('fRemember').checked) {
+              var enc2 = encPass(pass);
+              if (enc2) { acct.remembered = true; acct.encPass = enc2; }
+              var cur2 = loadDB(); cur2[localKey] = acct; saveDB(cur2);
+            }
+            done();
+            enterApp(localKey);
+            showToast('已从云端找回账号 ☁️，欢迎 ' + (acct.name || localKey));
+          });
+        });
       }
-      enterApp(loginName);
-      showToast('欢迎回来，' + (r2.name || loginName));
     }
   } catch(ex) {
+    authBusy = false;
+    $('authSubmit').disabled = false;
     $('formErr').textContent = '出错了：' + ex.message;
   }
 };
@@ -843,19 +992,28 @@ function enterApp(name){
   renderContacts();
   renderStickerGrid();
   setNet('off');
-  /* 云端信箱：初始化 + 每 10 秒轮询拉取（Realtime 订阅成功时秒级触发） */
-  initCloud(function(ok){
-    if (ok) {
-      setNet(peer && peer.open ? 'on' : 'off');
-      cloudFetch();
-      if (cloudTimer) clearInterval(cloudTimer);
-      cloudTimer = setInterval(cloudFetch, 10000);
-    } else if (cloudConfigured()) {
-      showToast('云端信箱连接失败，将使用在线探测模式', true);
+  /* 云端未就绪则先初始化（登录路径可能已 init 过） */
+  var afterCloud = function(){
+    cloudFetch();
+    if (cloudTimer) clearInterval(cloudTimer);
+    cloudTimer = setInterval(cloudFetch, 10000);
+    /* 本机账号若尚未上云（历史注册的），补同步 */
+    if (meRec() && !meRec()._cloudSynced) {
+      cloudRegister(meRec(), function(cerr){
+        var r = meRec();
+        if (!cerr) { r._cloudSynced = true; saveMe(r); }
+      });
     }
-  });
+  };
+  if (cloudReady) afterCloud();
+  else {
+    initCloud(function(ok){
+      if (ok) afterCloud();
+      else if (cloudConfigured()) showToast('云端连接失败，将仅本机运行', true);
+    });
+  }
   ensurePeerJS(function(ok){
-    if (!ok) { setNet('err'); showToast('无法加载 P2P 组件（PeerJS），请检查网络后刷新', true); return; }
+    if (!ok) { setNet('err'); showToast('无法加载 P2P 组件（PeerJS）', true); return; }
     startPeer();
   });
   if (flushTimer) clearInterval(flushTimer);
@@ -864,7 +1022,7 @@ function enterApp(name){
 }
 
  $('btnLogout').onclick = function(){
-  if (!confirm('退出后下次打开需要重新输入 ID 和密码，确定退出？')) return;
+  if (!confirm('退出后可用 ID+密码重新登录（本机或任何设备）。确定退出？')) return;
   if (flushTimer) { clearInterval(flushTimer); flushTimer = null; }
   if (cloudTimer) { clearInterval(cloudTimer); cloudTimer = null; }
   if (cloudChannel) { try { sbClient.removeChannel(cloudChannel); } catch(e) {} cloudChannel = null; }
@@ -877,7 +1035,7 @@ function enterApp(name){
   setMode(false);
 };
 
-/* ═══════════ 个人资料：头像 / 昵称 ═══════════ */
+/* ═══════════ 个人资料（改名/头像 → 同步云端账号库） ═══════════ */
  $('sbMe').onclick = function(){
   var rec = meRec();
   if (!rec) return;
@@ -925,6 +1083,12 @@ function renderBigAvatar(el, url, name){
   renderContacts();
   if (currentChat) renderMsgs();
   closeModal('profileModal');
+  /* 同步云端账号库 */
+  if (cloudReady) {
+    cloudUpdateProfile(rec, function(cerr){
+      if (cerr) showToast('云端资料同步失败：' + cerr, true);
+    });
+  }
   var profile = { t: 'profile', uid: myUid, name: rec.name, avatar: rec.avatar || '' };
   for (var u in conns) {
     if (conns[u] && conns[u].open) {
@@ -946,10 +1110,10 @@ function renderBigAvatar(el, url, name){
       gsyncGroup(gid);
     }
   }
-  showToast('资料已保存');
+  showToast('资料已保存并同步');
 };
 
-/* ═══════════ PeerJS 加载 ═══════════ */
+/* ═══════════ PeerJS ═══════════ */
 var PEER_CDNS = [
   'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js'
@@ -968,22 +1132,20 @@ function ensurePeerJS(cb){
   tryNext();
 }
 
-/* ═══════════ 信令状态 ═══════════ */
 function setNet(state){
   var el = $('netStatus');
   if (!el) return;
-  var cloudTag = cloudReady ? ' · ☁️信箱已启用' : '';
+  var cloudTag = cloudReady ? ' · ☁️信箱+账号库' : '';
   if (state === 'on') {
-    el.innerHTML = '<span style="color:var(--green)">● 已连接</span>，可收发消息' + cloudTag;
+    el.innerHTML = '<span style="color:var(--green)">● 已连接</span>' + cloudTag;
   } else if (state === 'err') {
-    el.innerHTML = '<span style="color:var(--unread)">● P2P 连接受限</span>' +
-      (cloudReady ? '，但 ☁️ 云端信箱仍可收发消息' : '，请换网络后重试');
+    el.innerHTML = '<span style="color:var(--unread)">● P2P 受限</span>' +
+      (cloudReady ? '，☁️ 消息仍可收发' : '，请换网络重试');
   } else {
     el.innerHTML = '<span style="color:#C8A415">● 正在连接…</span>' + cloudTag;
   }
 }
 
-/* ═══════════ Peer 层（多 STUN + TURN 兜底） ═══════════ */
 function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
 function peerOpts(){
   return {
@@ -1042,7 +1204,7 @@ function startPeer(){
   });
 }
 
-/* ═══════════ 统一投递：P2P 直连 → 云端信箱 → 本机队列 ═══════════ */
+/* ═══════════ 统一投递 ═══════════ */
 function queueLocal(toUid, key, payload, msgTs){
   var rec = meRec();
   if (!rec) return;
@@ -1055,7 +1217,6 @@ function deliverOrQueue(toUid, key, payload, msgTs){
     try { c.send(payload); } catch(e) {}
     markSent(key, msgTs);
   }, function(){
-    /* 对方不在线：投到云端信箱（关键），云端失败再退回本地队列 */
     if (cloudReady) {
       cloudSend(toUid, payload, key, msgTs, function(){
         queueLocal(toUid, key, payload, msgTs);
@@ -1077,7 +1238,6 @@ function markSent(key, ts){
   }
   if (hit) { saveMe(rec); if (currentChat === key) renderMsgs(); }
 }
-/* 本机 outbox 探测：我在线时主动推给上线的对方 */
 function flushOutbox(){
   if (!me || !peer || !peer.open) return;
   var rec = meRec();
@@ -1170,7 +1330,6 @@ function handleData(c, d){
     } else if (typeof d.img === 'string' && d.img.indexOf('data:image/') === 0 && d.img.length <= 500000) {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), img:d.img, ts:d.ts||Date.now() });
     }
-    /* 我是群主：转发给其他成员（离线的进云端信箱） */
     if (g1.owner === myUid && uid !== myUid) {
       g1.members.forEach(function(m){
         if (m.uid === uid || m.uid === myUid) return;
@@ -1211,7 +1370,7 @@ function handleData(c, d){
   }
 
   if (d.t === 'ginvite') {
-    if (c === dummyConn) return;  /* 群邀请需实时确认，不走云端 */
+    if (c === dummyConn) return;
     if (!d.group || rec.groups[d.group.gid]) return;
     reqQueue.push({ type:'ginvite', c:c, group:d.group, fromName:String(d.name||'').slice(0,16) });
     nextReq();
@@ -1308,7 +1467,7 @@ function handleData(c, d){
   $('addErr').textContent = '';
   $('addInput').value = '';
   if (peer && !peer.open) {
-    showToast('P2P 未连接，加好友需要双方在线（聊天则不必）', true);
+    showToast('P2P 未连接，加好友需要双方在线', true);
     return;
   }
   openModal('addModal');
@@ -1359,7 +1518,7 @@ function sendAddReq(uid){
       rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16), avatar: d.avatar || '' };
       saveMe(rec);
       renderContacts();
-      showToast('已添加 ' + rec.contacts[uid].name + '，之后离线也能聊');
+      showToast('已添加 ' + rec.contacts[uid].name);
     } else {
       showToast('对方拒绝了你的好友请求', true);
     }
@@ -1949,7 +2108,7 @@ function renderMsgs(){
     if (isMe && m.pending) {
       var pd = document.createElement('span');
       pd.className = 'm-pending';
-      pd.title = '投递中（对方上线后送达）';
+      pd.title = '投递中';
       pd.textContent = '⏳';
       bub.appendChild(pd);
     }
@@ -1963,12 +2122,12 @@ function updateChatStatus(){
   if (!currentChat) return;
   if (chatType === 'group') {
     $('chDot').className = 'dot';
-    $('chStatus').textContent = cloudReady ? '群聊 · 离线消息走云端' : '群聊消息经群主中转';
+    $('chStatus').textContent = cloudReady ? '群聊 · 离线走云端' : '群聊消息经群主中转';
     return;
   }
   var on = conns[currentChat] && conns[currentChat].open;
   $('chDot').className = 'dot' + (on ? ' live' : '');
-  $('chStatus').textContent = on ? 'P2P 已连接' : (cloudReady ? '离线 · 消息走云端信箱' : '未连接');
+  $('chStatus').textContent = on ? 'P2P 已连接' : (cloudReady ? '离线 · 走云端信箱' : '未连接');
 }
 
 function receiveMsg(key, msg){
@@ -2141,7 +2300,7 @@ function renderStickerGrid(){
     rec.stickers.push(dataUrl);
     saveMe(rec);
     renderStickerGrid();
-    showToast('贴图已收藏，点击即可发送');
+    showToast('贴图已收藏');
   });
   this.value = '';
 };
@@ -2201,7 +2360,6 @@ function sendSticker(dataUrl){
   }
 }
 
-/* ═══════════ 图片查看 / 内置浏览器 ═══════════ */
  $('imgViewer').onclick = function(){ this.hidden = true; };
 
 function openWebview(url){
