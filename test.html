@@ -8,24 +8,31 @@
   :root{
     --bg:#F2F2F2; --panel:#FFFFFF; --ink:#191919; --sub:#9A9A9A;
     --line:#E6E6E6; --green:#07C160; --bubble:#95EC69; --chatbg:#EDEDED;
-    --unread:#FA5151;
+    --unread:#FA5151; --mention:#576B95; --mentionbg:#E8F0FE;
+  }
+  /* 深色模式 */
+  html.dark{
+    --bg:#111111; --panel:#1E1E1E; --ink:#E8E8E8; --sub:#8A8A8A;
+    --line:#333333; --bubble:#3EB575; --chatbg:#161616;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%}
   body{background:var(--bg);color:var(--ink);font-size:14px;
     font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
     -webkit-font-smoothing:antialiased}
-  button{font-family:inherit;cursor:pointer;border:none;background:none}
-  input{font-family:inherit;outline:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,textarea{font-family:inherit;outline:none}
   [hidden]{display:none !important}
 
   #toast{position:fixed;top:20px;left:50%;transform:translate(-50%,-80px);z-index:600;
     background:#3A3A3A;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;
-    box-shadow:0 6px 20px rgba(0,0,0,.18);transition:transform .3s;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);transition:transform .3s;
     pointer-events:none;max-width:88vw;text-align:center;word-break:break-all}
+  html.dark #toast{background:#E8E8E8;color:#191919}
   #toast.show{transform:translate(-50%,0)}
-  #toast.err{background:#C0392B}
+  #toast.err{background:#C0392B;color:#fff}
 
+  /* ══ 登录/注册 ══ */
   #authView{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px}
   .logo{width:64px;height:64px;border-radius:16px;background:var(--green);display:flex;
     align-items:center;justify-content:center;color:#fff;font-size:30px;font-weight:700}
@@ -34,8 +41,8 @@
   .auth-box{width:100%;max-width:330px}
   .field{margin-bottom:16px}
   .field label{display:block;font-size:12.5px;color:var(--sub);margin-bottom:6px}
-  .field input{width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;
-    padding:12px 14px;font-size:14px}
+  .field input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;font-size:14px;color:var(--ink)}
   .field input:focus{border-color:var(--green)}
   .field input.uid-input{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;text-align:center}
   .field .hint{font-size:11px;color:var(--sub);margin-top:5px}
@@ -45,17 +52,17 @@
   .btn-primary{width:100%;background:var(--green);color:#fff;border-radius:8px;padding:13px;
     font-size:15px;font-weight:500}
   .btn-primary:hover{opacity:.9}
-  .btn-primary:disabled{opacity:.6;cursor:default}
-  .tabs{display:flex;background:#E9E9E9;border-radius:8px;padding:3px;margin-bottom:22px}
+  .tabs{display:flex;background:var(--line);border-radius:8px;padding:3px;margin-bottom:22px}
   .tabs button{flex:1;padding:9px;border-radius:6px;font-size:13.5px;color:var(--sub)}
-  .tabs button.on{background:#fff;color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .tabs button.on{background:var(--panel);color:var(--ink);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08)}
   .auth-note{margin-top:26px;font-size:11.5px;color:var(--sub);text-align:center;line-height:1.9}
 
+  /* ══ 主界面 ══ */
   #appView{height:100%;display:flex}
   #sidebar{width:280px;background:var(--panel);border-right:1px solid var(--line);
     display:flex;flex-direction:column;flex-shrink:0}
   .sb-head{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;cursor:pointer}
-  .sb-head:hover{background:#FAFAFA}
+  .sb-head:hover{background:rgba(128,128,128,.06)}
   .sb-me-name{font-size:14px;font-weight:600}
   .sb-me-uid{font-size:10.5px;color:var(--sub);font-family:ui-monospace,Menlo,monospace}
   .net-status{padding:0 16px 10px;font-size:12px;color:var(--sub);line-height:1.5}
@@ -66,8 +73,8 @@
   .sb-label{padding:6px 16px 2px;font-size:11px;color:var(--sub);letter-spacing:.1em}
   #contactList{flex:1;overflow-y:auto;padding-bottom:10px}
   .c-item{display:flex;align-items:center;gap:11px;padding:10px 16px;cursor:pointer;position:relative}
-  .c-item:hover{background:#F5F5F5}
-  .c-item.on{background:#EBEBEB}
+  .c-item:hover{background:rgba(128,128,128,.07)}
+  .c-item.on{background:rgba(128,128,128,.12)}
   .avatar{width:42px;height:42px;border-radius:8px;color:#fff;font-size:17px;font-weight:600;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
   .avatar img,.m-avatar img,.big-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
@@ -79,90 +86,117 @@
   .c-empty{padding:36px 24px;text-align:center;color:var(--sub);font-size:12.5px;line-height:1.9}
   .sb-foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px}
   .sb-foot button{flex:1;padding:8px 4px;font-size:12.5px;color:var(--sub);border-radius:6px}
-  .sb-foot button:hover{background:#F0F0F0;color:var(--ink)}
+  .sb-foot button:hover{background:rgba(128,128,128,.1);color:var(--ink)}
 
   #chatPane{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--chatbg)}
   #chatEmpty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--sub)}
   #chatEmpty .logo{opacity:.25}
-  .chat-head{padding:13px 20px;background:#F7F7F7;border-bottom:1px solid var(--line);
+  .chat-head{padding:13px 20px;background:var(--panel);border-bottom:1px solid var(--line);
     display:flex;align-items:center;gap:12px}
   .btn-back{display:none;width:28px;height:28px;color:var(--sub);align-items:center;justify-content:center;font-size:20px}
   .ch-name{font-size:16px;font-weight:600}
   .ch-uid{font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace;margin-top:2px}
   .ch-status{margin-left:auto;font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px}
   .btn-more{width:30px;height:30px;color:var(--sub);font-size:18px;display:flex;align-items:center;justify-content:center;border-radius:6px}
-  .btn-more:hover{background:#EAEAEA;color:var(--ink)}
+  .btn-more:hover{background:rgba(128,128,128,.12);color:var(--ink)}
   .dot{width:7px;height:7px;border-radius:50%;background:#C4C4C4}
   .dot.live{background:var(--green)}
   #msgs{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px}
-  .t-div{align-self:center;font-size:11.5px;color:#A6A6A6;background:#DADADA;border-radius:4px;padding:3px 9px}
-  .m-row{display:flex;gap:10px;max-width:78%;align-items:flex-start}
+  .t-div{align-self:center;font-size:11.5px;color:var(--sub);background:rgba(128,128,128,.15);border-radius:4px;padding:3px 9px}
+  .announce{align-self:stretch;background:rgba(184,134,11,.1);border:1px solid rgba(184,134,11,.35);
+    border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.6;color:var(--ink)}
+  .announce b{color:#B8860B;display:block;margin-bottom:3px;font-size:12px}
+  .m-row{display:flex;gap:10px;max-width:78%;align-items:flex-start;position:relative}
   .m-row.me{flex-direction:row-reverse;align-self:flex-end}
   .m-row.them{align-self:flex-start}
   .m-avatar{width:36px;height:36px;border-radius:6px;color:#fff;font-size:14px;font-weight:600;
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden}
-  .m-col{display:flex;flex-direction:column;gap:3px;min-width:0}
-  .m-sender{font-size:11px;color:#9A9A9A;padding:0 4px}
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;overflow:hidden;cursor:pointer}
+  .m-col{display:flex;flex-direction:column;gap:3px;min-width:0;max-width:100%}
+  .m-sender{font-size:11px;color:var(--sub);padding:0 4px}
   .m-bubble{padding:10px 13px;border-radius:8px;font-size:14.5px;line-height:1.55;
-    white-space:pre-wrap;word-break:break-word}
-  .m-bubble.has-img{padding:5px;background:#fff;white-space:normal}
+    white-space:pre-wrap;word-break:break-word;position:relative}
+  .m-bubble.has-img{padding:5px;background:var(--panel);white-space:normal}
+  .m-bubble.has-audio{padding:12px 14px;min-width:120px}
   .m-bubble img{max-width:160px;max-height:160px;border-radius:5px;display:block;cursor:zoom-in}
-  .them .m-bubble{background:#fff}
-  .me .m-bubble{background:var(--bubble)}
-  .me .m-bubble.has-img{background:#fff}
+  .them .m-bubble{background:var(--panel)}
+  html.dark .them .m-bubble{background:#2A2A2A}
+  .me .m-bubble{background:var(--bubble);color:#191919}
+  html.dark .me .m-bubble{color:#111}
+  .me .m-bubble.has-img{background:var(--panel);color:var(--ink)}
+  .m-mention{background:var(--mentionbg);color:var(--mention);border-radius:4px;padding:1px 4px;font-weight:500}
+  html.dark .m-mention{background:rgba(87,107,149,.25);color:#8FB5F0}
   .m-pending{font-size:10px;color:#C8A415;margin-left:4px}
-  .m-link{color:#576B95;text-decoration:none;cursor:pointer;word-break:break-all}
+  .m-read{font-size:10px;color:var(--green);margin-left:4px}
+  .m-recalled{font-size:12px;color:var(--sub);font-style:italic}
+  .m-audio{display:flex;align-items:center;gap:8px;cursor:pointer;min-width:110px}
+  .m-audio .play-ic{font-size:18px;width:22px;text-align:center}
+  .m-audio .bar{flex:1;height:26px;display:flex;align-items:center;gap:2px}
+  .m-audio .bar i{width:2.5px;background:currentColor;opacity:.65;border-radius:2px;display:block}
+  .m-audio .dur{font-size:11px;color:var(--sub);flex-shrink:0}
+  .m-audio.playing .play-ic{color:var(--green)}
+  .m-recording{color:var(--unread);font-size:13px;display:flex;align-items:center;gap:6px}
+  .m-recording .rc-dot{width:9px;height:9px;border-radius:50%;background:var(--unread);animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.2}}
+  .m-link{color:var(--mention);text-decoration:none;cursor:pointer;word-break:break-all}
   .m-link:hover{text-decoration:underline}
 
-  .composer-wrap{background:#F7F7F7;border-top:1px solid var(--line)}
-  #emojiPanel{background:#F7F7F7;border-top:1px solid var(--line);padding:10px 14px;max-height:220px;overflow-y:auto}
+  .composer-wrap{background:var(--panel);border-top:1px solid var(--line)}
+  #emojiPanel{background:var(--panel);border-top:1px solid var(--line);padding:10px 14px;max-height:220px;overflow-y:auto}
   .ep-tabs{display:flex;gap:16px;margin-bottom:10px;font-size:13px}
   .ep-tabs button{color:var(--sub);padding:2px 4px;border-radius:5px}
-  .ep-tabs button.on{color:var(--ink);font-weight:600;background:#EAEAEA}
+  .ep-tabs button.on{color:var(--ink);font-weight:600;background:rgba(128,128,128,.12)}
   .emoji-grid{display:flex;flex-wrap:wrap;gap:2px}
   .emoji-grid button{width:34px;height:34px;font-size:22px;border-radius:6px;line-height:1}
-  .emoji-grid button:hover{background:#E8E8E8}
+  .emoji-grid button:hover{background:rgba(128,128,128,.12)}
   .sticker-grid{display:flex;flex-wrap:wrap;gap:8px}
-  .sticker-grid .stk{width:56px;height:56px;border-radius:8px;background:#fff;border:1px solid var(--line);
+  .sticker-grid .stk{width:56px;height:56px;border-radius:8px;background:var(--panel);border:1px solid var(--line);
     padding:3px;cursor:pointer;object-fit:contain}
   .sticker-grid .stk:hover{border-color:var(--green)}
   .sticker-add{width:56px;height:56px;border-radius:8px;border:1px dashed #C4C4C4;color:var(--sub);
-    font-size:22px;display:flex;align-items:center;justify-content:center;background:#fff}
+    font-size:22px;display:flex;align-items:center;justify-content:center;background:var(--panel)}
   .sticker-add:hover{border-color:var(--green);color:var(--green)}
-  .composer{display:flex;gap:10px;padding:12px 18px 14px;align-items:center}
-  .btn-emoji{width:36px;height:40px;font-size:22px;display:flex;align-items:center;justify-content:center;
+  /* @ 选择面板 */
+  #mentionPanel{position:absolute;bottom:56px;left:60px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.18);padding:6px;z-index:50;max-height:200px;overflow-y:auto;min-width:180px}
+  .mn-item{display:flex;align-items:center;gap:9px;padding:8px 12px;border-radius:7px;cursor:pointer;font-size:14px}
+  .mn-item:hover{background:rgba(128,128,128,.1)}
+  .mn-item .avatar{width:28px;height:28px;font-size:12px}
+  .mn-all{color:var(--unread);font-weight:600}
+  .composer{display:flex;gap:8px;padding:12px 16px 14px;align-items:center;position:relative}
+  .btn-emoji,.btn-mic{width:36px;height:40px;font-size:21px;display:flex;align-items:center;justify-content:center;
     border-radius:8px;flex-shrink:0}
-  .btn-emoji:hover{background:#EAEAEA}
-  .btn-emoji.on{background:#E0E0E0}
-  .composer input{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:14px;background:#fff}
+  .btn-emoji:hover,.btn-mic:hover{background:rgba(128,128,128,.12)}
+  .btn-emoji.on{background:rgba(128,128,128,.2)}
+  .btn-mic.recording{background:var(--unread);color:#fff;animation:blink 1s infinite}
+  .composer input{flex:1;border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:14px;background:var(--bg);color:var(--ink)}
   .composer input:focus{border-color:var(--green)}
-  .btn-send{background:var(--green);color:#fff;border-radius:8px;padding:0 22px;font-size:14px;font-weight:500;
+  .btn-send{background:var(--green);color:#fff;border-radius:8px;padding:0 20px;font-size:14px;font-weight:500;
     height:42px;flex-shrink:0}
 
-  #webview{position:fixed;inset:0;background:#fff;z-index:500;display:flex;flex-direction:column}
-  .wv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#F7F7F7;border-bottom:1px solid var(--line)}
-  .wv-bar button{color:#576B95;font-size:14px;padding:6px 10px;border-radius:6px}
-  .wv-bar button:hover{background:#EAEAEA}
+  #webview{position:fixed;inset:0;background:var(--panel);z-index:500;display:flex;flex-direction:column}
+  .wv-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+  .wv-bar button{color:var(--mention);font-size:14px;padding:6px 10px;border-radius:6px}
+  .wv-bar button:hover{background:rgba(128,128,128,.12)}
   .wv-title{flex:1;text-align:center;font-size:14.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .wv-url{font-size:11px;color:var(--sub);text-align:center;padding:4px;background:#FFFBE6;
+  .wv-url{font-size:11px;color:var(--sub);text-align:center;padding:4px;background:rgba(184,134,11,.08);
     font-family:ui-monospace,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .wv-hint{font-size:11px;color:#B08A2E;text-align:center;padding:4px;background:#FFF8E1;line-height:1.5}
-  #wvFrame{flex:1;width:100%;border:none;background:#fff}
+  .wv-hint{font-size:11px;color:#B08A2E;text-align:center;padding:4px;background:rgba(184,134,11,.08);line-height:1.5}
+  #wvFrame{flex:1;width:100%;border:none;background:var(--panel)}
 
   #imgViewer{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:550;
     display:flex;align-items:center;justify-content:center;cursor:zoom-out}
   #imgViewer img{max-width:92vw;max-height:88vh;border-radius:8px}
 
-  .mask{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:400;display:flex;
+  .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;display:flex;
     align-items:center;justify-content:center;padding:20px}
-  .modal{background:#fff;border-radius:12px;width:100%;max-width:340px;padding:22px;
+  .modal{background:var(--panel);border-radius:12px;width:100%;max-width:340px;padding:22px;
     max-height:84vh;overflow-y:auto}
   .modal h3{font-size:16px;margin-bottom:16px;font-weight:600}
   .req-user{display:flex;align-items:center;gap:12px;margin-bottom:18px}
   .req-msg{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:18px}
   .modal-btns{display:flex;gap:10px}
   .mbtn{flex:1;padding:11px;border-radius:8px;font-size:14px;font-weight:500}
-  .mbtn.gray{background:#F0F0F0;color:var(--ink)}
+  .mbtn.gray{background:rgba(128,128,128,.12);color:var(--ink)}
   .mbtn.green{background:var(--green);color:#fff}
   .modal-close{float:right;color:var(--sub);font-size:20px;line-height:1;padding:2px 4px}
   .modal-close:hover{color:var(--ink)}
@@ -172,31 +206,34 @@
   .fm-item{border-top:1px solid var(--line)}
   .fm-item button{width:100%;text-align:left;padding:12px 4px;font-size:14.5px;color:var(--ink)}
   .fm-item button.danger{color:var(--unread)}
-  .fm-item button:hover{background:#FAFAFA}
+  .fm-item button:hover{background:rgba(128,128,128,.06)}
   .gm-list{margin-bottom:10px}
-  .gm-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F2F2F2}
+  .gm-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
   .gm-item .avatar{width:34px;height:34px;font-size:14px}
   .gm-name{flex:1;font-size:14px}
   .gm-role{font-size:10px;border-radius:4px;padding:1px 6px}
-  .role-owner{color:#B8860B;background:#FFF6D9}
-  .role-admin{color:#576B95;background:#E8F0FE}
-  .role-member{color:var(--sub);background:#F2F2F2}
+  .role-owner{color:#B8860B;background:rgba(184,134,11,.15)}
+  .role-admin{color:var(--mention);background:var(--mentionbg)}
+  .role-member{color:var(--sub);background:rgba(128,128,128,.12)}
   .gm-ops{display:flex;gap:6px}
-  .gm-ops button{font-size:11px;color:#576B95;padding:3px 8px;border-radius:5px;background:#F2F6FC}
-  .gm-ops button:hover{background:#E0EAFB}
-  .gm-ops button.danger{color:var(--unread);background:#FDEEEE}
+  .gm-ops button{font-size:11px;color:var(--mention);padding:3px 8px;border-radius:5px;background:var(--mentionbg)}
+  .gm-ops button:hover{opacity:.8}
+  .gm-ops button.danger{color:var(--unread);background:rgba(250,81,81,.1)}
   .pick-list{max-height:220px;overflow-y:auto;margin-bottom:14px;border:1px solid var(--line);border-radius:8px}
-  .pick-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid #F5F5F5}
+  .pick-item{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--line)}
   .pick-item:last-child{border-bottom:none}
-  .pick-item:hover{background:#F7F7F7}
+  .pick-item:hover{background:rgba(128,128,128,.06)}
   .pick-item input{width:16px;height:16px;accent-color:var(--green)}
   .pick-item .avatar{width:32px;height:32px;font-size:13px}
+  textarea.ann-input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+    padding:10px 12px;font-size:13.5px;color:var(--ink);min-height:90px;resize:vertical}
 
   @media (max-width:680px){
     #sidebar{width:100%;border-right:none}
     #chatPane{position:fixed;inset:0;z-index:10;display:none}
     #chatPane.open{display:flex}
     .btn-back{display:flex}
+    .m-row{max-width:88%}
   }
 </style>
 </head>
@@ -207,7 +244,7 @@
 <main id="authView" hidden>
   <div class="logo">A</div>
   <div class="auth-title">AzChat</div>
-  <div class="auth-sub">P2P 加密聊天 · 账号云端保存，任何设备可登录</div>
+  <div class="auth-sub">点对点加密聊天 · 对方离线也能收到消息</div>
   <div class="auth-box">
     <div class="tabs">
       <button type="button" id="tabLogin" class="on">登录</button>
@@ -217,7 +254,6 @@
       <div class="field" id="fUidWrap">
         <label>AzChat ID</label>
         <input id="fUid" class="uid-input" type="text" placeholder="AZ + 8 位字符" maxlength="10" autocomplete="off">
-        <div class="hint">本机或云端注册过的 ID 均可登录</div>
       </div>
       <div class="field" id="fUserWrap" hidden>
         <label>昵称</label>
@@ -240,7 +276,7 @@
       <button type="submit" class="btn-primary" id="authSubmit">进入</button>
     </form>
   </div>
-  <p class="auth-note">账号保存在云端（只存加盐哈希，不存明文密码）<br>凭 ID + 密码可在任何设备登录</p>
+  <p class="auth-note">在线时 P2P 端到端直连<br>对方离线时消息存入云端信箱，上线即收</p>
 </main>
 
 <div id="appView" hidden>
@@ -261,6 +297,7 @@
     <div class="sb-label">消息</div>
     <div id="contactList"></div>
     <div class="sb-foot">
+      <button type="button" id="btnTheme">🌙 深色</button>
       <button type="button" id="btnBackup">备份</button>
       <button type="button" id="btnImport">导入</button>
       <button type="button" id="btnLogout">退出</button>
@@ -284,6 +321,7 @@
       </div>
       <div id="msgs"></div>
       <div class="composer-wrap">
+        <div id="mentionPanel" hidden></div>
         <div id="emojiPanel" hidden>
           <div class="ep-tabs">
             <button type="button" id="epTabEmoji" class="on">😊 Emoji</button>
@@ -294,7 +332,8 @@
         </div>
         <div class="composer">
           <button type="button" class="btn-emoji" id="btnEmoji" title="表情">😊</button>
-          <input id="msgInput" type="text" placeholder="输入消息…" maxlength="2000">
+          <input id="msgInput" type="text" placeholder="输入消息…（群聊输入@提醒成员）" maxlength="2000">
+          <button type="button" class="btn-mic" id="btnMic" title="按住说话" hidden>🎤</button>
           <button type="button" class="btn-send" id="btnSend">发送</button>
         </div>
       </div>
@@ -388,9 +427,20 @@
     <h3 id="gmTitle">群聊信息</h3>
     <div class="gm-list" id="gmList"></div>
     <div class="form-err" id="gmErr"></div>
+    <div class="fm-item"><button type="button" id="btnGroupAnnounce">📢 群公告</button></div>
     <div class="fm-item"><button type="button" id="btnGroupInvite">➕ 邀请好友进群</button></div>
     <div class="fm-item"><button type="button" id="btnGroupLeave" class="danger">🚪 退出群聊</button></div>
     <div class="fm-item" id="disbandRow" hidden><button type="button" class="danger" id="btnGroupDisband">💥 解散群聊</button></div>
+  </div>
+</div>
+
+<div class="mask" id="announceModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="announceModal">×</button>
+    <h3>📢 群公告</h3>
+    <textarea class="ann-input" id="annInput" maxlength="300" placeholder="输入群公告（仅群主/管理员可编辑）"></textarea>
+    <div class="form-err" id="annErr"></div>
+    <button type="button" class="mbtn green" id="btnSaveAnnounce" style="width:100%">保存并通知全员</button>
   </div>
 </div>
 
@@ -405,8 +455,22 @@
         <div style="font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace" id="fmUid"></div>
       </div>
     </div>
+    <div class="fm-item"><button type="button" id="btnSetRemark">✏️ 设置备注名</button></div>
     <div class="fm-item"><button type="button" id="btnClearHistory">🧹 清空聊天记录</button></div>
     <div class="fm-item"><button type="button" class="danger" id="btnDeleteFriend">🗑 删除好友</button></div>
+  </div>
+</div>
+
+<div class="mask" id="remarkModal" hidden>
+  <div class="modal">
+    <button type="button" class="modal-close" data-close="remarkModal">×</button>
+    <h3>✏️ 备注名</h3>
+    <div class="field">
+      <label id="remarkLabel">给「」设置备注（仅自己可见）</label>
+      <input id="remarkInput" type="text" maxlength="16" placeholder="留空则清除备注">
+    </div>
+    <div class="form-err" id="remarkErr"></div>
+    <button type="button" class="mbtn green" id="btnSaveRemark" style="width:100%">保存</button>
   </div>
 </div>
 
@@ -424,10 +488,10 @@
     </div>
     <div class="field">
       <label>AzChat ID（不可修改）</label>
-      <input id="pmUid" class="uid-input" type="text" disabled style="background:#F6F6F6;color:var(--sub)">
+      <input id="pmUid" class="uid-input" type="text" disabled style="opacity:.6">
     </div>
     <div class="form-err" id="pmErr"></div>
-    <button type="button" class="mbtn green" id="btnSaveProfile" style="width:100%">保存（同步到云端）</button>
+    <button type="button" class="mbtn green" id="btnSaveProfile" style="width:100%">保存（同步云端与好友）</button>
   </div>
 </div>
 
@@ -438,14 +502,12 @@
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
-   ★ 云端配置（已填好你的 Supabase 项目） ★
-   需要两张表：az_mail（离线信箱）和 az_users（云端密码库）
-   建表 SQL 见文件末尾注释 / 部署说明
+   ★ 云端配置（Supabase，已填好） ★
 ═══════════════════════════════════════════════════════ */
 var SB_URL = 'https://ilhalqmtgjmyfdusyrch.supabase.co';
 var SB_KEY = 'sb_publishable_ksRXPTi9gKaqN1QZVfkKBw_4UZprqWc';
-var SB_TABLE = 'az_mail';       /* 离线消息信箱 */
-var SB_USERS = 'az_users';      /* 云端账号库 */
+var SB_TABLE = 'az_mail';
+var SB_USERS = 'az_users';
 
 window.onerror = function(msg, src, line){
   try { showToast('脚本出错：' + msg + '（第 ' + line + ' 行）', true); } catch(e) {}
@@ -618,6 +680,25 @@ function domainOf(u){
   try { var a = document.createElement('a'); a.href = u; return a.hostname; }
   catch(e){ return u; }
 }
+/* 显示名：优先备注 */
+function displayName(rec, uid, fallback){
+  var f = rec.contacts[uid];
+  if (f && f.remark) return f.remark;
+  return fallback || (f ? f.name : uid);
+}
+
+/* ═══════════ 深色模式 ═══════════ */
+(function(){
+  var t = storage.getItem('azchat_theme');
+  if (t === 'dark') document.documentElement.classList.add('dark');
+})();
+ $('btnTheme').onclick = function(){
+  var el = document.documentElement;
+  var dark = el.classList.toggle('dark');
+  storage.setItem('azchat_theme', dark ? 'dark' : 'light');
+  this.textContent = dark ? '☀️ 浅色' : '🌙 深色';
+};
+if (storage.getItem('azchat_theme') === 'dark') $('btnTheme').textContent = '☀️ 浅色';
 
 /* ═══════════ 本地数据 ═══════════ */
 var DB_KEY = 'azchat_v5', SES_KEY = 'azchat_session_v5';
@@ -664,8 +745,9 @@ function isGroupKey(key){
 var me = null, myUid = null, peer = null;
 var conns = {}, unread = {}, currentChat = null, chatType = 'friend';
 var flushTimer = null, cloudTimer = null, cloudChannel = null;
+var pendingMentions = [];   /* 待发送的 @ 目标 */
 
-/* ═══════════ 云端（Supabase）：信箱 + 账号库 ═══════════ */
+/* ═══════════ 云端（Supabase） ═══════════ */
 var cloudReady = false, cloudFetching = false;
 var seenCloudIds = {};
 var sbClient = null;
@@ -696,62 +778,6 @@ function initCloud(cb){
   s.onerror = function(){ cb(false); };
   document.head.appendChild(s);
 }
-
-/* ── 云端账号库 ── */
-/* 注册：写入 az_users。回调用 err（null=成功） */
-function cloudRegister(rec, cb){
-  if (!sbClient) { cb('云端未连接'); return; }
-  sbClient.from(SB_USERS)
-    .upsert([{
-      uid: rec.uid,
-      name: rec.name,
-      salt: rec.salt,
-      hash: rec.hash,
-      avatar: rec.avatar || ''
-    }], { onConflict: 'uid' })
-    .then(function(res){
-      if (res.error) { cb(res.error.message); return; }
-      cb(null);
-    });
-}
-/* 云端登录：按 uid 查询并校验密码。成功回调整份账号资料 */
-function cloudLogin(uid, pass, cb){
-  if (!sbClient) { cb('云端未连接', null); return; }
-  sbClient.from(SB_USERS)
-    .select('*')
-    .eq('uid', uid)
-    .maybeSingle()
-    .then(function(res){
-      if (res.error) { cb(res.error.message, null); return; }
-      if (!res.data) { cb('notfound', null); return; }
-      var row = res.data;
-      if (sha256(row.salt + pass) !== row.hash) { cb('密码错误', null); return; }
-      cb(null, {
-        uid: row.uid,
-        name: row.name || uid,
-        avatar: row.avatar || '',
-        contacts: row.contacts || {},
-        groups: row.groups || {},
-        chats: row.chats || {},
-        stickers: row.stickers || [],
-        outbox: [],
-        salt: row.salt,
-        hash: row.hash
-      });
-    });
-}
-/* 云端改名/改头像后同步 */
-function cloudUpdateProfile(rec, cb){
-  if (!sbClient) { if (cb) cb('云端未连接'); return; }
-  sbClient.from(SB_USERS)
-    .update({ name: rec.name, avatar: rec.avatar || '' })
-    .eq('uid', rec.uid)
-    .then(function(res){
-      if (cb) cb(res.error ? res.error.message : null);
-    });
-}
-
-/* ── 离线信箱 ── */
 function cloudSend(toUid, payload, key, ts, onFail){
   if (!sbClient) { if (onFail) onFail(); return; }
   sbClient.from(SB_TABLE)
@@ -788,9 +814,38 @@ function cloudFetch(){
       });
       var ids = fresh.map(function(r){ return r.id; });
       sbClient.from(SB_TABLE).delete().in('id', ids).then(function(){});
-      if (count > 0) showToast('已收到 ' + count + ' 条离线消息 ☁️');
+      if (count > 0) showToast('已收到 ' + count + ' 条消息 ☁️');
       flushOutbox();
     });
+}
+function cloudRegister(rec, cb){
+  if (!sbClient) { cb('云端未连接'); return; }
+  sbClient.from(SB_USERS)
+    .upsert([{ uid: rec.uid, name: rec.name, salt: rec.salt, hash: rec.hash, avatar: rec.avatar || '' }],
+            { onConflict: 'uid' })
+    .then(function(res){ cb(res.error ? res.error.message : null); });
+}
+function cloudLogin(uid, pass, cb){
+  if (!sbClient) { cb('云端未连接', null); return; }
+  sbClient.from(SB_USERS).select('*').eq('uid', uid).maybeSingle()
+    .then(function(res){
+      if (res.error) { cb(res.error.message, null); return; }
+      if (!res.data) { cb('notfound', null); return; }
+      var row = res.data;
+      if (sha256(row.salt + pass) !== row.hash) { cb('密码错误', null); return; }
+      cb(null, {
+        uid: row.uid, name: row.name || uid, avatar: row.avatar || '',
+        contacts: row.contacts || {}, groups: row.groups || {}, chats: row.chats || {},
+        stickers: row.stickers || [], outbox: [], salt: row.salt, hash: row.hash
+      });
+    });
+}
+function cloudUpdateProfile(rec, cb){
+  if (!sbClient) { if (cb) cb('云端未连接'); return; }
+  sbClient.from(SB_USERS)
+    .update({ name: rec.name, avatar: rec.avatar || '' })
+    .eq('uid', rec.uid)
+    .then(function(res){ if (cb) cb(res.error ? res.error.message : null); });
 }
 
 var dummyConn = { send: function(){}, close: function(){} };
@@ -805,8 +860,7 @@ var dummyConn = { send: function(){}, close: function(){} };
   $('authView').hidden = false;
 })();
 
-var regMode = false;
-var authBusy = false;
+var regMode = false, authBusy = false;
 function setMode(r){
   regMode = r;
   $('tabLogin').className = r ? '' : 'on';
@@ -849,7 +903,6 @@ function setMode(r){
       var uid = 'AZ' + sha256('azchat-id::' + name + salt).slice(0, 8).toUpperCase();
       var rec = { salt: salt, hash: sha256(salt + pass), uid: uid, name: name, avatar: '',
                   contacts: {}, chats: {}, stickers: [], groups: {}, outbox: [] };
-      /* 先建本地，再上云；云端失败仍可本地用（下次进 app 会重试同步） */
       db[name] = rec;
       saveDB(db);
       var finishReg = function(){
@@ -861,18 +914,17 @@ function setMode(r){
       };
       initCloud(function(ok){
         if (!ok) {
-          showToast('⚠️ 云端不可用，账号仅保存在本机（可稍后备份）', true);
+          showToast('⚠️ 云端不可用，账号仅保存在本机', true);
           finishReg();
           return;
         }
         cloudRegister(rec, function(cerr){
-          if (cerr) showToast('⚠️ 云端注册失败：' + cerr + '（账号已保存在本机）', true);
-          else showToast('✅ 已同步到云端，任何设备凭 ID+密码可登录');
+          if (cerr) showToast('⚠️ 云端注册失败：' + cerr, true);
+          else showToast('✅ 已同步云端，任何设备凭 ID+密码可登录');
           finishReg();
         });
       });
     } else {
-      /* ── 登录 ── */
       var m = $('fUid').value.match(/^AZ([0-9A-Z]{8})$/);
       if (!m) { err.textContent = '请输入完整的 ID，格式为 AZ + 8 位字符'; return; }
       var loginUid = 'AZ' + m[1];
@@ -887,7 +939,6 @@ function setMode(r){
       var localName = findNameByUid(loginUid);
 
       if (localName) {
-        /* 本机有此账号：本地校验 + 顺手从云端拉最新资料 */
         var r2 = db[localName];
         if (sha256(r2.salt + pass) !== r2.hash) {
           done();
@@ -920,11 +971,10 @@ function setMode(r){
           }
         });
       } else {
-        /* 本机没有：查云端密码库，命中则把账号拉下来 */
         initCloud(function(ok){
           if (!ok) {
             done();
-            err.textContent = '该 ID 未在本机注册过，且云端不可用。请先注册'; return;
+            err.textContent = '该 ID 未在本机注册过，且云端不可用'; return;
           }
           cloudLogin(loginUid, pass, function(cerr, acct){
             if (cerr) {
@@ -933,11 +983,10 @@ function setMode(r){
               else err.textContent = '云端查询失败：' + cerr;
               return;
             }
-            /* 以云端资料在本机建号。本机显示名 = 昵称去重 */
             var baseName = acct.name || loginUid;
             var localKey = baseName;
-            var n = 2;
-            while (db[localKey]) { localKey = baseName + '_' + n; n++; }
+            var nn = 2;
+            while (db[localKey]) { localKey = baseName + '_' + nn; nn++; }
             acct.name = localKey;
             var cur = loadDB();
             cur[localKey] = acct;
@@ -949,7 +998,7 @@ function setMode(r){
             }
             done();
             enterApp(localKey);
-            showToast('已从云端找回账号 ☁️，欢迎 ' + (acct.name || localKey));
+            showToast('已从云端找回账号 ☁️');
           });
         });
       }
@@ -992,12 +1041,10 @@ function enterApp(name){
   renderContacts();
   renderStickerGrid();
   setNet('off');
-  /* 云端未就绪则先初始化（登录路径可能已 init 过） */
   var afterCloud = function(){
     cloudFetch();
     if (cloudTimer) clearInterval(cloudTimer);
     cloudTimer = setInterval(cloudFetch, 10000);
-    /* 本机账号若尚未上云（历史注册的），补同步 */
     if (meRec() && !meRec()._cloudSynced) {
       cloudRegister(meRec(), function(cerr){
         var r = meRec();
@@ -1022,7 +1069,7 @@ function enterApp(name){
 }
 
  $('btnLogout').onclick = function(){
-  if (!confirm('退出后可用 ID+密码重新登录（本机或任何设备）。确定退出？')) return;
+  if (!confirm('退出后可用 ID+密码重新登录。确定退出？')) return;
   if (flushTimer) { clearInterval(flushTimer); flushTimer = null; }
   if (cloudTimer) { clearInterval(cloudTimer); cloudTimer = null; }
   if (cloudChannel) { try { sbClient.removeChannel(cloudChannel); } catch(e) {} cloudChannel = null; }
@@ -1035,7 +1082,7 @@ function enterApp(name){
   setMode(false);
 };
 
-/* ═══════════ 个人资料（改名/头像 → 同步云端账号库） ═══════════ */
+/* ═══════════ 个人资料 ═══════════ */
  $('sbMe').onclick = function(){
   var rec = meRec();
   if (!rec) return;
@@ -1083,7 +1130,6 @@ function renderBigAvatar(el, url, name){
   renderContacts();
   if (currentChat) renderMsgs();
   closeModal('profileModal');
-  /* 同步云端账号库 */
   if (cloudReady) {
     cloudUpdateProfile(rec, function(cerr){
       if (cerr) showToast('云端资料同步失败：' + cerr, true);
@@ -1281,6 +1327,7 @@ function bindIncoming(c){
   });
 }
 
+/* ═══════════ 消息协议处理（含撤回/回执/@/公告/语音） ═══════════ */
 function handleData(c, d){
   if (!d || typeof d !== 'object' || !d.uid) return;
   var uid = String(d.uid);
@@ -1288,6 +1335,64 @@ function handleData(c, d){
   if (!rec) return;
 
   if (d.t === 'add') { handleAddReq(c, uid, d.name, d.avatar); return; }
+
+  /* 已读回执：对方打开聊天窗口时发来 */
+  if (d.t === 'read') {
+    var rk = d.key;
+    if (!rec.chats[rk]) return;
+    var lastTs = d.ts || Date.now();
+    var ch = false;
+    for (var ri = 0; ri < rec.chats[rk].length; ri++) {
+      var rm = rec.chats[rk][ri];
+      if (rm.w === 'me' && rm.ts <= lastTs && !rm.readBy) { rm.readBy = [uid]; ch = true; }
+    }
+    if (ch) { saveMe(rec); if (currentChat === rk) renderMsgs(); }
+    return;
+  }
+
+  /* 撤回 */
+  if (d.t === 'recall') {
+    var rkey = d.key, rts = d.ts;
+    if (rec.chats[rkey]) {
+      for (var ci = 0; ci < rec.chats[rkey].length; ci++) {
+        var cm = rec.chats[rkey][ci];
+        if (cm.ts === rts && cm.w === 'them') {
+          delete cm.text; delete cm.img; delete cm.audio;
+          cm.recalled = true;
+          saveMe(rec);
+          if (currentChat === rkey) renderMsgs();
+          showToast(displayName(rec, uid, cm.fromName) + ' 撤回了一条消息');
+          break;
+        }
+      }
+    }
+    return;
+  }
+
+  /* 群公告同步 */
+  if (d.t === 'gannounce') {
+    var ga = rec.groups[d.gid];
+    if (ga) {
+      ga.announce = d.text || '';
+      ga.announceBy = d.annName || '';
+      ga.announceTs = Date.now();
+      saveMe(rec);
+      showToast('📢 群公告已更新：' + String(d.text||'').slice(0,20));
+      if (currentChat === d.gid) renderMsgs();
+    }
+    return;
+  }
+
+  /* @提醒（群聊） */
+  if (d.t === 'gmention') {
+    var gm1 = rec.groups[d.gid];
+    if (!gm1) return;
+    var mentNames = (d.names || []).join('、');
+    showToast('💬 ' + displayName(rec, uid, d.name) + ' 在「' + gm1.name + '」中@了你' +
+              (d.all ? '（@所有人）' : ''), true);
+    /* @提醒不单独入库，正文 gmsg 随后到达 */
+    return;
+  }
 
   if (d.t === 'profile') {
     var changed = false;
@@ -1325,15 +1430,17 @@ function handleData(c, d){
       if (g1.members[j].uid === uid) { senderIn = true; break; }
     }
     if (!senderIn) return;
-    if (typeof d.text === 'string') {
-      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
+    if (typeof d.audio === 'string' && d.audio.indexOf('data:audio/') === 0 && d.audio.length <= 1200000) {
+      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), audio:d.audio, dur:d.dur||0, mentions:d.mentions||[], ts:d.ts||Date.now() });
+    } else if (typeof d.text === 'string') {
+      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), text:String(d.text).slice(0,2000), mentions:d.mentions||[], ts:d.ts||Date.now() });
     } else if (typeof d.img === 'string' && d.img.indexOf('data:image/') === 0 && d.img.length <= 500000) {
-      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), img:d.img, ts:d.ts||Date.now() });
+      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), img:d.img, mentions:d.mentions||[], ts:d.ts||Date.now() });
     }
     if (g1.owner === myUid && uid !== myUid) {
       g1.members.forEach(function(m){
         if (m.uid === uid || m.uid === myUid) return;
-        deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, gid:d.gid, ts:d.ts }, 0);
+        deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, audio:d.audio, dur:d.dur, mentions:d.mentions, gid:d.gid, ts:d.ts }, 0);
       });
     }
     return;
@@ -1440,7 +1547,7 @@ function handleData(c, d){
 
   if (d.t === 'del') {
     if (rec.contacts[uid]) {
-      var nm = rec.contacts[uid].name;
+      var nm = displayName(rec, uid, rec.contacts[uid].name);
       delete rec.contacts[uid];
       delete rec.chats[uid];
       saveMe(rec);
@@ -1459,6 +1566,9 @@ function handleData(c, d){
   } else if (d.t === 'sticker' && typeof d.img === 'string' && d.img.indexOf('data:image/') === 0) {
     if (d.img.length > 500000) return;
     receiveMsg(uid, { w:'them', img:d.img, ts:d.ts||Date.now() });
+  } else if (d.t === 'audio' && typeof d.audio === 'string' && d.audio.indexOf('data:audio/') === 0) {
+    if (d.audio.length > 1200000) return;
+    receiveMsg(uid, { w:'them', audio:d.audio, dur:d.dur||0, ts:d.ts||Date.now() });
   }
 }
 
@@ -1515,7 +1625,7 @@ function sendAddReq(uid){
     clearTimeout(timer); finish();
     if (d && d.t === 'addok') {
       var rec = meRec();
-      rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16), avatar: d.avatar || '' };
+      rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16), avatar: d.avatar || '', remark: '' };
       saveMe(rec);
       renderContacts();
       showToast('已添加 ' + rec.contacts[uid].name);
@@ -1590,7 +1700,7 @@ function nextReq(){
   $('btnAccept').onclick = function(){
     closeModal('reqModal');
     var rec = meRec();
-    rec.contacts[r.uid] = { uid: r.uid, name: r.name, avatar: r.avatar || '' };
+    rec.contacts[r.uid] = { uid: r.uid, name: r.name, avatar: r.avatar || '', remark: '' };
     saveMe(rec);
     renderContacts();
     try { r.c.send({ t: 'addok', uid: myUid, name: rec.name || me, avatar: rec.avatar || '' }); } catch(e) {}
@@ -1622,6 +1732,7 @@ function nextReq(){
   var gid = 'G' + randHex(4).toUpperCase();
   rec.groups[gid] = {
     gid: gid, name: name, owner: myUid, myRole: 'owner',
+    announce: '',
     members: [{ uid: myUid, name: rec.name || me, role: 'owner', avatar: rec.avatar || '' }]
   };
   rec.chats[gid] = [];
@@ -1661,7 +1772,7 @@ var inviteGid = null;
     item.appendChild(avatarEl(f.name, uid, false, f.avatar));
     var nm = document.createElement('div');
     nm.className = 'c-name';
-    nm.textContent = f.name;
+    nm.textContent = displayName(rec, uid, f.name);
     item.appendChild(nm);
     box.appendChild(item);
   }
@@ -1736,6 +1847,39 @@ function removeGroupMember(gid, uid, reason){
   renderContacts();
   showToast('已将成员移出（' + reason + '）');
 }
+
+/* ═══════════ 群公告 ═══════════ */
+ $('btnGroupAnnounce').onclick = function(){
+  if (!currentChat || !isGroupKey(currentChat)) return;
+  var rec = meRec();
+  var g = rec.groups[currentChat];
+  if (!g) return;
+  var myRole = g.myRole || (g.owner === myUid ? 'owner' : 'member');
+  if (myRole === 'member') { showToast('仅群主/管理员可编辑公告', true); return; }
+  $('annInput').value = g.announce || '';
+  $('annErr').textContent = '';
+  openModal('announceModal');
+};
+ $('btnSaveAnnounce').onclick = function(){
+  if (!currentChat || !isGroupKey(currentChat)) return;
+  var rec = meRec();
+  var g = rec.groups[currentChat];
+  if (!g) return;
+  var text = $('annInput').value.replace(/^\s+|\s+$/g, '').slice(0, 300);
+  g.announce = text;
+  g.announceBy = rec.name || me;
+  g.announceTs = Date.now();
+  saveMe(rec);
+  closeModal('announceModal');
+  gsyncGroup(currentChat);
+  /* 单独广播公告通知（离线成员走信箱） */
+  g.members.forEach(function(m){
+    if (m.uid === myUid) return;
+    deliverOrQueue(m.uid, currentChat, { t: 'gannounce', uid: myUid, gid: currentChat, text: text, annName: g.announceBy }, 0);
+  });
+  renderMsgs();
+  showToast('群公告已保存并通知全员');
+};
 
  $('btnMore').onclick = function(){
   if (!currentChat) return;
@@ -1865,11 +2009,13 @@ function notifyRole(gid, uid, role){
   showToast('群聊已解散');
 };
 
+/* ═══════════ 好友设置 + 备注名 ═══════════ */
 function openFriendModal(uid){
-  var f = meRec().contacts[uid];
+  var rec = meRec();
+  var f = rec.contacts[uid];
   if (!f) return;
-  $('fmName').textContent = f.name;
-  $('fmUid').textContent = f.uid;
+  $('fmName').textContent = displayName(rec, uid, f.name) + (f.remark ? '' : '');
+  $('fmUid').textContent = f.uid + (f.remark ? '（备注：' + f.remark + '，原名 ' + f.name + '）' : '');
   var av = $('fmAvatar');
   av.innerHTML = '';
   av.style.background = avatarColor(uid);
@@ -1882,11 +2028,37 @@ function openFriendModal(uid){
   }
   openModal('friendModal');
 }
+ $('btnSetRemark').onclick = function(){
+  if (!currentChat || chatType !== 'friend') return;
+  var rec = meRec();
+  var f = rec.contacts[currentChat];
+  if (!f) return;
+  $('remarkLabel').textContent = '给「' + f.name + '」设置备注（仅自己可见）';
+  $('remarkInput').value = f.remark || '';
+  $('remarkErr').textContent = '';
+  openModal('remarkModal');
+  $('remarkInput').focus();
+};
+ $('btnSaveRemark').onclick = function(){
+  if (!currentChat || chatType !== 'friend') return;
+  var rec = meRec();
+  var f = rec.contacts[currentChat];
+  if (!f) return;
+  var rk = $('remarkInput').value.replace(/^\s+|\s+$/g, '').slice(0, 16);
+  f.remark = rk;
+  saveMe(rec);
+  closeModal('remarkModal');
+  closeModal('friendModal');
+  renderContacts();
+  $('chName').textContent = rk || f.name;
+  renderMsgs();
+  showToast(rk ? '备注已保存：' + rk : '备注已清除');
+};
  $('btnClearHistory').onclick = function(){
   if (!currentChat) return;
-  var name = chatType === 'group' ? meRec().groups[currentChat].name : meRec().contacts[currentChat].name;
-  if (!confirm('确定清空与「' + name + '」的全部聊天记录？（仅本机）')) return;
   var rec = meRec();
+  var name = chatType === 'group' ? rec.groups[currentChat].name : displayName(rec, currentChat, rec.contacts[currentChat].name);
+  if (!confirm('确定清空与「' + name + '」的全部聊天记录？（仅本机）')) return;
   rec.chats[currentChat] = [];
   saveMe(rec);
   renderMsgs();
@@ -1897,9 +2069,11 @@ function openFriendModal(uid){
  $('btnDeleteFriend').onclick = function(){
   if (!currentChat || chatType !== 'friend') return;
   var uid = currentChat;
-  var f = meRec().contacts[uid];
+  var rec = meRec();
+  var f = rec.contacts[uid];
   if (!f) return;
-  if (!confirm('删除「' + f.name + '」后将同时删除聊天记录，\n对方在线时其好友列表也会移除你。确定？')) return;
+  var dn = displayName(rec, uid, f.name);
+  if (!confirm('删除「' + dn + '」后将同时删除聊天记录，\n对方在线时其好友列表也会移除你。确定？')) return;
   closeModal('friendModal');
   var c = conns[uid];
   if (c && c.open) {
@@ -1907,7 +2081,6 @@ function openFriendModal(uid){
     setTimeout(function(){ try { c.close(); } catch(e) {} }, 500);
   }
   delete conns[uid];
-  var rec = meRec();
   delete rec.contacts[uid];
   delete rec.chats[uid];
   saveMe(rec);
@@ -1915,7 +2088,7 @@ function openFriendModal(uid){
   currentChat = null;
   showEmptyChat();
   renderContacts();
-  showToast('已删除 ' + f.name);
+  showToast('已删除 ' + dn);
 };
 
 /* ═══════════ 列表 ═══════════ */
@@ -1930,14 +2103,14 @@ function renderContacts(){
   var rec = meRec();
   if (!rec) return;
   var items = [];
-  for (var uid in rec.contacts) items.push({ type:'friend', key:uid, name:rec.contacts[uid].name, avatar:rec.contacts[uid].avatar, sub:uid });
+  for (var uid in rec.contacts) items.push({ type:'friend', key:uid, name:displayName(rec, uid, rec.contacts[uid].name), avatar:rec.contacts[uid].avatar, sub:uid });
   for (var gid in rec.groups) items.push({ type:'group', key:gid, name:rec.groups[gid].name, avatar:'', sub:rec.groups[gid].members.length + '人' });
   items.sort(function(a, b){ return lastTs(rec, b.key) - lastTs(rec, a.key); });
 
   if (!items.length) {
     var empty = document.createElement('div');
     empty.className = 'c-empty';
-    empty.innerHTML = '还没有好友和群聊<br>用上方「＋ 好友」「👥 群聊」开始<br><span style="font-size:11px;color:#B8B8B8">加好友需双方同时在线</span>';
+    empty.innerHTML = '还没有好友和群聊<br>用上方「＋ 好友」「👥 群聊」开始<br><span style="font-size:11px;opacity:.7">加好友需双方同时在线</span>';
     box.appendChild(empty);
     return;
   }
@@ -1980,6 +2153,7 @@ function showEmptyChat(){
   $('chatEmpty').hidden = false;
   $('chatBox').hidden = true;
   hideEmojiPanel();
+  hideMentionPanel();
 }
 function openChat(key){
   var rec = meRec();
@@ -1989,7 +2163,7 @@ function openChat(key){
   if (isGroup) { name = rec.groups[key].name; chatType = 'group'; }
   else {
     if (!rec.contacts[key]) return;
-    name = rec.contacts[key].name;
+    name = displayName(rec, key, rec.contacts[key].name);
     chatType = 'friend';
   }
   currentChat = key;
@@ -2000,11 +2174,21 @@ function openChat(key){
   $('chName').textContent = name;
   $('chUid').textContent = isGroup ? ('群聊 · ' + rec.groups[key].members.length + ' 位成员') : key;
   hideEmojiPanel();
+  hideMentionPanel();
   renderMsgs();
   renderContacts();
   updateChatStatus();
   if (!isGroup) ensureConn(key, null);
+  /* 已读回执：打开窗口即告知对方已读到最新 */
+  var hist = rec.chats[key];
+  if (hist && hist.length && !isGroup) {
+    sendReadReceipt(key, hist[hist.length - 1].ts);
+  }
   $('msgInput').focus();
+}
+function sendReadReceipt(key, ts){
+  if (chatType === 'group' || key === myUid) return;
+  deliverOrQueue(key, key, { t: 'read', uid: myUid, key: myUid, ts: ts }, 0);
 }
  $('btnBack').onclick = function(){
   $('chatPane').className = '';
@@ -2012,12 +2196,16 @@ function openChat(key){
   showEmptyChat();
 };
 
-function buildBubbleContent(bub, m){
-  if (m.sysText) {
-    var sys = document.createElement('span');
-    sys.style.cssText = 'color:#9A9A9A;font-size:12px';
-    sys.textContent = m.sysText;
-    bub.appendChild(sys);
+/* 气泡内容渲染（文本/@/图片/语音/撤回） */
+function buildBubbleContent(bub, m, isMe){
+  if (m.recalled) {
+    bub.className = 'm-bubble m-recalled';
+    bub.textContent = isMe ? '你撤回了一条消息' : '对方撤回了一条消息';
+    return;
+  }
+  if (m.audio) {
+    bub.className += ' has-audio';
+    bub.appendChild(buildAudioEl(m, isMe));
     return;
   }
   if (m.img) {
@@ -2034,23 +2222,90 @@ function buildBubbleContent(bub, m){
     return;
   }
   var text = m.text || '';
-  var parts = text.split(URL_RE);
-  for (var i = 0; i < parts.length; i++) {
-    if (!parts[i]) continue;
-    if (i % 2 === 1) {
-      var a = document.createElement('a');
-      a.className = 'm-link';
-      a.textContent = parts[i];
-      var href = /^https?:\/\//i.test(parts[i]) ? parts[i] : ('http://' + parts[i]);
-      a.onclick = (function(url){ return function(e){
-        e.preventDefault();
-        openWebview(url);
-      }; })(href);
-      bub.appendChild(a);
-    } else {
-      bub.appendChild(document.createTextNode(parts[i]));
-    }
+  /* 渲染 @标记：[[mn:AZxxxx:名字]] */
+  var MN_RE = /\[\[mn:([A-Z0-9]+):([^\]]*)\]\]/g;
+  var lastIdx = 0, mm;
+  var parts = [];
+  while ((mm = MN_RE.exec(text)) !== null) {
+    if (mm.index > lastIdx) parts.push({ plain: text.slice(lastIdx, mm.index) });
+    parts.push({ mention: mm[2] });
+    lastIdx = mm.index + mm[0].length;
   }
+  if (lastIdx < text.length) parts.push({ plain: text.slice(lastIdx) });
+  parts.forEach(function(p){
+    if (p.mention) {
+      var sp = document.createElement('span');
+      sp.className = 'm-mention';
+      sp.textContent = '@' + p.mention;
+      bub.appendChild(sp);
+      return;
+    }
+    var seg = p.plain;
+    var urlParts = seg.split(URL_RE);
+    for (var i = 0; i < urlParts.length; i++) {
+      if (!urlParts[i]) continue;
+      if (i % 2 === 1) {
+        var a = document.createElement('a');
+        a.className = 'm-link';
+        a.textContent = urlParts[i];
+        var href = /^https?:\/\//i.test(urlParts[i]) ? urlParts[i] : ('http://' + urlParts[i]);
+        a.onclick = (function(url){ return function(e){
+          e.preventDefault();
+          openWebview(url);
+        }; })(href);
+        bub.appendChild(a);
+      } else {
+        bub.appendChild(document.createTextNode(urlParts[i]));
+      }
+    }
+  });
+}
+
+/* 语音条播放器 */
+var audioPlayer = null;
+function buildAudioEl(m, isMe){
+  var wrap = document.createElement('div');
+  wrap.className = 'm-audio';
+  var ic = document.createElement('span');
+  ic.className = 'play-ic';
+  ic.textContent = '▶';
+  var bar = document.createElement('span');
+  bar.className = 'bar';
+  /* 伪波形：随机但固定的高度 */
+  var seed = m.ts || 0;
+  for (var i = 0; i < 18; i++) {
+    var b = document.createElement('i');
+    var h = 6 + ((seed * (i + 7)) % 17);
+    b.style.height = h + 'px';
+    bar.appendChild(b);
+  }
+  var dur = document.createElement('span');
+  dur.className = 'dur';
+  dur.textContent = (m.dur || 0) + '"';
+  wrap.appendChild(ic); wrap.appendChild(bar); wrap.appendChild(dur);
+  wrap.onclick = function(e){
+    e.stopPropagation();
+    if (audioPlayer) { try { audioPlayer.pause(); } catch(er) {} }
+    if (audioPlayer && audioPlayer._src === m.audio && !audioPlayer.paused) {
+      audioPlayer = null;
+      return;
+    }
+    try {
+      var au = new Audio(m.audio);
+      audioPlayer = au;
+      au._src = m.audio;
+      wrap.classList.add('playing');
+      ic.textContent = '⏸';
+      au.onended = au.onpause = function(){
+        wrap.classList.remove('playing');
+        ic.textContent = '▶';
+      };
+      au.play();
+    } catch(er) {
+      showToast('播放失败：' + er.message, true);
+    }
+  };
+  return wrap;
 }
 
 function renderMsgs(){
@@ -2058,7 +2313,18 @@ function renderMsgs(){
   box.innerHTML = '';
   var rec = meRec();
   if (!rec || !currentChat) return;
+  var isGroup = chatType === 'group';
   var hist = rec.chats[currentChat] || [];
+  /* 群公告置顶显示 */
+  if (isGroup && rec.groups[currentChat] && rec.groups[currentChat].announce) {
+    var ann = document.createElement('div');
+    ann.className = 'announce';
+    var annB = document.createElement('b');
+    annB.textContent = '📢 群公告' + (rec.groups[currentChat].announceBy ? '（' + rec.groups[currentChat].announceBy + '）' : '');
+    ann.appendChild(annB);
+    ann.appendChild(document.createTextNode(rec.groups[currentChat].announce));
+    box.appendChild(ann);
+  }
   var lastSeen = 0;
   hist.forEach(function(m){
     if (m.ts - lastSeen > 5 * 60 * 1000) {
@@ -2079,7 +2345,7 @@ function renderMsgs(){
     var row = document.createElement('div');
     row.className = 'm-row ' + (isMe ? 'me' : 'them');
     var avKey, avName, avUrl;
-    if (chatType === 'group') {
+    if (isGroup) {
       var g = rec.groups[currentChat];
       var mm = null;
       var findUid = isMe ? myUid : m.from;
@@ -2089,14 +2355,18 @@ function renderMsgs(){
       avUrl = mm ? mm.avatar : '';
     } else {
       var f2 = rec.contacts[currentChat];
-      avName = isMe ? (rec.name || me) : (f2 ? f2.name : '?');
+      avName = isMe ? (rec.name || me) : displayName(rec, currentChat, f2 ? f2.name : '?');
       avKey = isMe ? myUid : currentChat;
       avUrl = isMe ? rec.avatar : (f2 ? f2.avatar : '');
     }
-    row.appendChild(avatarEl(avName, avKey, true, avUrl));
+    var av = avatarEl(avName, avKey, true, avUrl);
+    if (!isMe) {
+      av.title = '长按/右键可撤回该消息' ;
+    }
+    row.appendChild(av);
     var col = document.createElement('div');
     col.className = 'm-col';
-    if (!isMe && chatType === 'group') {
+    if (!isMe && isGroup) {
       var sender = document.createElement('div');
       sender.className = 'm-sender';
       sender.textContent = m.fromName || avName;
@@ -2104,20 +2374,91 @@ function renderMsgs(){
     }
     var bub = document.createElement('div');
     bub.className = 'm-bubble';
-    buildBubbleContent(bub, m);
-    if (isMe && m.pending) {
+    buildBubbleContent(bub, m, isMe);
+    /* 已读/待送达标记 */
+    if (isMe && m.recalled) { /* 已在内容中处理 */ }
+    else if (isMe && m.pending) {
       var pd = document.createElement('span');
       pd.className = 'm-pending';
       pd.title = '投递中';
       pd.textContent = '⏳';
       bub.appendChild(pd);
+    } else if (isMe && m.readBy && m.readBy.length) {
+      var rd = document.createElement('span');
+      rd.className = 'm-read';
+      rd.title = '对方已读';
+      rd.textContent = '✓✓';
+      bub.appendChild(rd);
     }
     col.appendChild(bub);
     row.appendChild(col);
+    /* 撤回交互：右键自己消息（2 小时内） */
+    if (isMe && !m.recalled && (Date.now() - m.ts < 2 * 60 * 60 * 1000)) {
+      bub.oncontextmenu = function(e){
+        e.preventDefault();
+        recallMsg(m);
+      };
+      bub.title = '右键撤回';
+    }
+    /* 撤回交互：右键别人的消息（群主/管理员可远程撤回——简化为仅自己） */
+    if (!isMe && !m.recalled && isGroup) {
+      var g2 = rec.groups[currentChat];
+      if (g2 && (g2.owner === myUid || (g2.myRole === 'admin' && m.from && g2.owner !== m.from))) {
+        bub.oncontextmenu = function(e){
+          e.preventDefault();
+          if (!confirm('以管理员身份撤回该成员的消息？')) return;
+          /* 通知对方删除，本地也标记 */
+          var payload = { t: 'recall', uid: myUid, key: currentChat, ts: m.ts };
+          deliverOrQueue(m.from, currentChat, payload, 0);
+          if (g2.owner === myUid) {
+            g2.members.forEach(function(mm2){
+              if (mm2.uid === myUid || mm2.uid === m.from) return;
+              deliverOrQueue(mm2.uid, currentChat, payload, 0);
+            });
+          }
+          delete m.text; delete m.img; delete m.audio;
+          m.recalled = true;
+          saveMe(rec);
+          renderMsgs();
+        };
+        bub.title = '右键撤回（管理员）';
+      }
+    }
     box.appendChild(row);
   });
   box.scrollTop = box.scrollHeight;
 }
+
+/* 撤回自己的消息 */
+function recallMsg(m){
+  if (!currentChat) return;
+  if (!confirm('撤回这条消息？（双方都会删除）')) return;
+  var rec = meRec();
+  var key = currentChat;
+  var payload = { t: 'recall', uid: myUid, key: key, ts: m.ts };
+  if (chatType === 'friend') {
+    deliverOrQueue(key, key, payload, 0);
+  } else {
+    var g = rec.groups[key];
+    if (!g) return;
+    if (g.owner === myUid) {
+      g.members.forEach(function(mm){
+        if (mm.uid === myUid) return;
+        deliverOrQueue(mm.uid, key, payload, 0);
+      });
+    } else {
+      deliverOrQueue(g.owner, key, payload, 0);
+    }
+  }
+  delete m.text; delete m.img; delete m.audio;
+  m.recalled = true;
+  saveMe(rec);
+  renderMsgs();
+  showToast('已撤回');
+}
+/* 群主转发撤回给全员的补充逻辑：收到成员的 recall 时（我作为群主）转发 */
+var _origHandleRecall = null;
+
 function updateChatStatus(){
   if (!currentChat) return;
   if (chatType === 'group') {
@@ -2134,14 +2475,36 @@ function receiveMsg(key, msg){
   var rec = meRec();
   if (!rec) return;
   if (!rec.chats[key]) rec.chats[key] = [];
+  /* 收到群消息且我被@：额外提醒 */
+  if (msg.w === 'them' && msg.mentions && msg.mentions.length && rec.groups[key]) {
+    var mentioned = msg.mentions.some(function(mn){ return mn.uid === myUid; }) ||
+                    msg.mentions.some(function(mn){ return mn.all; });
+    if (mentioned) {
+      var gname = rec.groups[key].name;
+      showToast('💬 ' + (msg.fromName||'有人') + ' 在「' + gname + '」@了你' +
+        (msg.mentions.some(function(mn){return mn.all;}) ? '（@所有人）' : ''), true);
+      unread[key] = (unread[key] || 0) + 1;
+      renderContacts();
+    }
+  }
+  if (!rec.chats[key]) rec.chats[key] = [];
   rec.chats[key].push(msg);
   if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
   saveMe(rec);
-  if (currentChat === key) renderMsgs();
-  else {
-    unread[key] = (unread[key] || 0) + 1;
-    var preview = msg.sysText ? msg.sysText.slice(0,20) : (msg.img ? '[贴图]' : String(msg.text).slice(0, 20));
-    var who = msg.fromName || (rec.contacts[key] ? rec.contacts[key].name : (rec.groups[key] ? rec.groups[key].name : ''));
+  if (currentChat === key) {
+    renderMsgs();
+    /* 打开着窗口 = 已读，回执 */
+    if (chatType === 'friend' && msg.w === 'them') {
+      sendReadReceipt(key, msg.ts);
+    }
+  } else {
+    if (!(msg.mentions && msg.mentions.length)) {
+      unread[key] = (unread[key] || 0) + 1;
+    }
+    var preview = msg.sysText ? msg.sysText.slice(0,20) :
+                  msg.audio ? '[语音]' :
+                  msg.img ? '[贴图]' : String(msg.text || '').replace(/\[\[mn:[^\]]+\]\]/g, '@').slice(0, 20);
+    var who = msg.fromName || (rec.contacts[key] ? displayName(rec, key, rec.contacts[key].name) : (rec.groups[key] ? rec.groups[key].name : ''));
     if (who) showToast(who + '：' + preview);
   }
   renderContacts();
@@ -2184,6 +2547,182 @@ function ensureConn(uid, cb, onFail){
   });
 }
 
+/* ═══════════ @ 提醒 ═══════════ */
+function hideMentionPanel(){
+  $('mentionPanel').hidden = true;
+}
+function showMentionPanel(filter){
+  if (chatType !== 'group' || !currentChat) return;
+  var rec = meRec();
+  var g = rec.groups[currentChat];
+  if (!g) return;
+  var panel = $('mentionPanel');
+  panel.innerHTML = '';
+  var myRole = g.myRole || (g.owner === myUid ? 'owner' : 'member');
+  /* @所有人（仅群主/管理员） */
+  if (myRole !== 'member') {
+    var allItem = document.createElement('div');
+    allItem.className = 'mn-item';
+    var allAv = document.createElement('div');
+    allAv.className = 'avatar';
+    allAv.style.background = 'var(--unread)';
+    allAv.style.width = '28px';
+    allAv.style.height = '28px';
+    allAv.style.fontSize = '12px';
+    allAv.textContent = '@';
+    allItem.appendChild(allAv);
+    var allN = document.createElement('div');
+    allN.className = 'mn-all';
+    allN.textContent = '所有人';
+    allItem.appendChild(allN);
+    allItem.onclick = function(){
+      pickMention({ all: true, name: '所有人' });
+    };
+    panel.appendChild(allItem);
+  }
+  g.members.forEach(function(m){
+    if (m.uid === myUid) return;
+    if (filter && m.name.toLowerCase().indexOf(filter.toLowerCase()) === -1) return;
+    var item = document.createElement('div');
+    item.className = 'mn-item';
+    item.appendChild(avatarEl(m.name, m.uid, true, m.avatar));
+    var nm = document.createElement('div');
+    nm.textContent = m.name;
+    item.appendChild(nm);
+    item.onclick = function(){
+      pickMention({ uid: m.uid, name: m.name });
+    };
+    panel.appendChild(item);
+  });
+  if (panel.children.length) panel.hidden = false;
+  else panel.hidden = true;
+}
+function pickMention(mn){
+  var input = $('msgInput');
+  var v = input.value;
+  var atIdx = v.lastIndexOf('@');
+  if (atIdx >= 0) v = v.slice(0, atIdx);
+  v += '@' + mn.name + ' ';
+  input.value = v;
+  pendingMentions.push(mn);
+  hideMentionPanel();
+  input.focus();
+}
+ $('msgInput').addEventListener('input', function(e){
+  var v = e.target.value;
+  var atIdx = v.lastIndexOf('@');
+  if (atIdx >= 0 && (atIdx === 0 || v.charAt(atIdx-1) === ' ')) {
+    showMentionPanel(v.slice(atIdx + 1));
+  } else {
+    hideMentionPanel();
+  }
+});
+document.addEventListener('click', function(e){
+  var p = $('mentionPanel');
+  if (!p.hidden && !p.contains(e.target) && e.target !== $('msgInput')) hideMentionPanel();
+});
+
+/* ═══════════ 语音条 ═══════════ */
+var mediaRecorder = null, audioChunks = [], recStartTs = 0, recTimerInt = null;
+var MIC_OK = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia &&
+                window.MediaRecorder);
+if (!MIC_OK) $('btnMic').hidden = true;
+
+ $('btnMic').addEventListener('mousedown', startRecording);
+ $('btnMic').addEventListener('touchstart', function(e){ e.preventDefault(); startRecording(); });
+document.addEventListener('mouseup', stopRecording);
+document.addEventListener('touchend', function(e){ if (mediaRecorder) stopRecording(); });
+
+function startRecording(){
+  if (mediaRecorder || !MIC_OK || !currentChat) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showToast('此浏览器不支持录音', true);
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
+    try {
+      audioChunks = [];
+      var opts = {};
+      if (MediaRecorder.isTypeSupported('audio/webm')) opts.mimeType = 'audio/webm';
+      else if (MediaRecorder.isTypeSupported('audio/mp4')) opts.mimeType = 'audio/mp4';
+      mediaRecorder = new MediaRecorder(stream, opts);
+      recStartTs = Date.now();
+      mediaRecorder.ondataavailable = function(e){
+        if (e.data && e.data.size) audioChunks.push(e.data);
+      };
+      mediaRecorder.onstop = function(){
+        stream.getTracks().forEach(function(t){ try { t.stop(); } catch(e2) {} });
+        var dur = Math.round((Date.now() - recStartTs) / 1000);
+        var btn = $('btnMic');
+        btn.classList.remove('recording');
+        btn.textContent = '🎤';
+        if (recTimerInt) { clearInterval(recTimerInt); recTimerInt = null; }
+        if (dur < 1) { showToast('说话时间太短'); mediaRecorder = null; return; }
+        var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        mediaRecorder = null;
+        if (dur > 60) { showToast('语音超过 60 秒，已取消（长按录音最长 60 秒）', true); return; }
+        var reader = new FileReader();
+        reader.onload = function(){
+          var dataUrl = reader.result;
+          if (dataUrl.length > 1200000) { showToast('语音过大，发送失败', true); return; }
+          sendAudio(dataUrl, dur);
+        };
+        reader.readAsDataURL(blob);
+      };
+      mediaRecorder.start();
+      $('btnMic').classList.add('recording');
+      var sec = 0;
+      $('btnMic').textContent = '0"';
+      recTimerInt = setInterval(function(){
+        sec++;
+        $('btnMic').textContent = sec + '"';
+        if (sec >= 60) stopRecording();
+      }, 1000);
+      showToast('🎙 松开发送，最长 60 秒');
+    } catch(e) {
+      stream.getTracks().forEach(function(t){ try { t.stop(); } catch(e2) {} });
+      showToast('录音启动失败：' + e.message, true);
+      mediaRecorder = null;
+    }
+  }).catch(function(err){
+    mediaRecorder = null;
+    showToast('麦克风权限被拒绝，无法录音', true);
+  });
+}
+function stopRecording(){
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    try { mediaRecorder.stop(); } catch(e) {}
+  }
+}
+function sendAudio(dataUrl, dur){
+  if (!currentChat) return;
+  var key = currentChat;
+  var rec = meRec();
+  if (!rec.chats[key]) rec.chats[key] = [];
+  var ts = Date.now();
+  var msg = { w: 'me', audio: dataUrl, dur: dur, ts: ts, pending: true };
+  rec.chats[key].push(msg);
+  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
+  saveMe(rec);
+  renderMsgs();
+  if (chatType === 'group') {
+    var g = rec.groups[key];
+    if (!g) return;
+    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, audio: dataUrl, dur: dur, gid: key, ts: ts };
+    deliverOrQueue(g.owner, key, payload, ts);
+    if (g.owner === myUid) {
+      g.members.forEach(function(m){
+        if (m.uid === myUid) return;
+        deliverOrQueue(m.uid, key, payload, 0);
+      });
+      markSent(key, ts);
+    }
+  } else {
+    deliverOrQueue(key, key, { t: 'audio', uid: myUid, audio: dataUrl, dur: dur, ts: ts }, ts);
+  }
+}
+
+/* ═══════════ 发送消息（含 @ 与回执触发） ═══════════ */
 function sendMsg(){
   var input = $('msgInput');
   var text = input.value.replace(/^\s+|\s+$/g, '');
@@ -2193,7 +2732,19 @@ function sendMsg(){
   var rec = meRec();
   if (!rec.chats[key]) rec.chats[key] = [];
   var ts = Date.now();
-  var msg = { w: 'me', text: text, ts: ts, pending: true };
+
+  /* 组装 @ 数据：pendingMentions 里的目标 */
+  var mentions = [];
+  var mentionsOut = [];
+  if (chatType === 'group' && pendingMentions.length) {
+    pendingMentions.forEach(function(mn){
+      mentions.push({ uid: mn.uid || '', all: !!mn.all, name: mn.name });
+      mentionsOut.push(mn);
+    });
+    pendingMentions = [];
+  }
+
+  var msg = { w: 'me', text: text, ts: ts, pending: true, mentions: mentions };
   rec.chats[key].push(msg);
   if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
   saveMe(rec);
@@ -2202,8 +2753,20 @@ function sendMsg(){
   if (chatType === 'group') {
     var g = rec.groups[key];
     if (!g) return;
-    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, text: text, gid: key, ts: ts };
+    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, text: text, gid: key, ts: ts, mentions: mentions };
     deliverOrQueue(g.owner, key, payload, ts);
+    /* @提醒单独推送（确保被@者有醒目提示） */
+    mentionsOut.forEach(function(mn){
+      if (mn.all) {
+        /* @所有人：发全体 */
+        g.members.forEach(function(m){
+          if (m.uid === myUid) return;
+          deliverOrQueue(m.uid, key, { t: 'gmention', uid: myUid, name: rec.name || me, gid: key, names: [], all: true }, 0);
+        });
+      } else if (mn.uid) {
+        deliverOrQueue(mn.uid, key, { t: 'gmention', uid: myUid, name: rec.name || me, gid: key, names: [mn.name], all: false }, 0);
+      }
+    });
     if (g.owner === myUid) {
       g.members.forEach(function(m){
         if (m.uid === myUid) return;
@@ -2217,7 +2780,7 @@ function sendMsg(){
 }
  $('btnSend').onclick = sendMsg;
  $('msgInput').onkeydown = function(e){
-  if (e.key === 'Enter') { e.preventDefault(); sendMsg(); }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
 };
 
 /* ═══════════ 表情 & 贴图 ═══════════ */
@@ -2360,6 +2923,7 @@ function sendSticker(dataUrl){
   }
 }
 
+/* ═══════════ 图片查看 / 内置浏览器 ═══════════ */
  $('imgViewer').onclick = function(){ this.hidden = true; };
 
 function openWebview(url){
