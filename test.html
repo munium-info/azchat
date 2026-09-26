@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AzChat</title>
 <style>
+  /* ══ 浅色主题（默认，微信绿配色） ══ */
   :root{
     --bg:#F2F2F2; --bg2:#FFFFFF; --panel:#F1F2F5; --panel2:#E7E9EE;
     --ink:#191919; --sub:#9A9A9A; --line:#E6E6E6;
@@ -12,10 +13,11 @@
     --bubble-me:#95EC69;
     --bubble-me-text:#191919;
     --bubble-them:#FFFFFF;
-    --unread:#FA5151; --warn:#C08A1E;
+    --unread:#FA5151; --warn:#D19A1E;
     --shadow:0 1px 3px rgba(20,30,60,.06);
     --shadow-lg:0 8px 30px rgba(20,30,60,.12);
   }
+  /* ══ 深色主题 ══ */
   html.dark{
     --bg:#0D0F14; --bg2:#13161D; --panel:#1B1F2A; --panel2:#242A38;
     --ink:#E8EAF0; --sub:#7A8194; --line:#252B3A;
@@ -45,13 +47,6 @@
   #toast.show{transform:translate(-50%,0)}
   #toast.err{border-color:var(--unread);color:var(--unread)}
 
-  /* ══ SVG 图标 ══ */
-  .ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
-  .ic svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;
-    stroke-linecap:round;stroke-linejoin:round}
-  .ic.btn-lg svg{width:18px;height:18px}
-  .ic.sm svg{width:14px;height:14px}
-
   /* ══ 右键菜单 ══ */
   #ctxMenu{position:fixed;z-index:800;background:var(--bg2);border:1px solid var(--line);
     border-radius:12px;padding:6px;min-width:150px;box-shadow:var(--shadow-lg);
@@ -62,7 +57,8 @@
   .ctx-item:hover{background:rgba(7,193,96,.08)}
   .ctx-item.danger{color:var(--unread)}
   .ctx-item.danger:hover{background:rgba(250,81,81,.08)}
-  .ctx-item .ic svg{width:15px;height:15px}
+  .ctx-item .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;
+    stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .ctx-sep{height:1px;background:var(--line);margin:5px 8px}
 
   /* ══ 登录 ══ */
@@ -102,14 +98,13 @@
   .avatar{width:44px;height:44px;border-radius:12px;color:#fff;font-size:17px;font-weight:700;
     display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;
     background:var(--acc)}
-  .avatar img,.m-avatar img,.big-avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+  .avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
   .sb-me-name{font-size:14.5px;font-weight:600}
   .sb-me-uid{font-size:10.5px;color:var(--sub);font-family:ui-monospace,Menlo,monospace;margin-top:2px}
-  .sb-edit-hint{margin-left:auto;color:var(--sub);display:flex}
   .net-status{margin:6px 16px 8px;padding:8px 12px;font-size:11.5px;color:var(--sub);
     background:var(--panel);border-radius:10px;line-height:1.5}
   .btn-row{display:flex;gap:8px;padding:0 12px 8px}
-  .btn-row button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  .btn-row button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
     background:var(--acc);color:#fff;border-radius:11px;
     padding:10px 4px;font-size:12.5px;font-weight:500;transition:all .15s}
   .btn-row button:hover{opacity:.9}
@@ -128,20 +123,23 @@
     color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0 4px;font-weight:700}
   .c-empty{padding:40px 24px;text-align:center;color:var(--sub);font-size:12.5px;line-height:2}
   .sb-foot{padding:10px 12px;border-top:1px solid var(--line);display:flex;gap:6px}
-  .sb-foot button{flex:1;padding:9px 2px;font-size:11.5px;color:var(--sub);border-radius:9px;transition:all .15s}
+  .sb-foot button{flex:1;padding:9px 2px;font-size:11.5px;color:var(--sub);border-radius:9px;transition:all .15s;
+    display:flex;align-items:center;justify-content:center;gap:4px}
   .sb-foot button:hover{background:var(--panel);color:var(--ink)}
+  .sb-foot button .ic svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round}
 
   #chatPane{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
   #chatEmpty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--sub)}
   #chatEmpty .logo{width:56px;height:56px;font-size:26px;opacity:.35}
   .chat-head{padding:14px 22px;background:var(--bg2);border-bottom:1px solid var(--line);
     display:flex;align-items:center;gap:12px}
-  .btn-back{display:none;width:30px;height:30px;color:var(--sub);align-items:center;justify-content:center;border-radius:8px}
+  .btn-back{display:none;width:30px;height:30px;color:var(--sub);align-items:center;justify-content:center;font-size:20px;border-radius:8px}
   .btn-back:hover{background:var(--panel)}
   .ch-name{font-size:15.5px;font-weight:600}
   .ch-uid{font-size:10.5px;color:var(--sub);font-family:ui-monospace,Menlo,monospace;margin-top:2px}
   .ch-status{margin-left:auto;font-size:11.5px;color:var(--sub);display:flex;align-items:center;gap:6px}
-  .btn-more{width:32px;height:32px;color:var(--sub);display:flex;align-items:center;justify-content:center;border-radius:9px}
+  .btn-more{width:32px;height:32px;color:var(--sub);font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:9px}
   .btn-more:hover{background:var(--panel);color:var(--ink)}
   .dot{width:7px;height:7px;border-radius:50%;background:#C8CCD6}
   html.dark .dot{background:#4A5060}
@@ -149,10 +147,11 @@
   #msgs{flex:1;overflow-y:auto;padding:22px 24px;display:flex;flex-direction:column;gap:16px}
   .t-div{align-self:center;font-size:11px;color:var(--sub);background:var(--panel);
     border-radius:20px;padding:4px 12px}
-  .announce{align-self:stretch;background:rgba(192,138,30,.07);border:1px solid rgba(192,138,30,.3);
+  .announce{align-self:stretch;background:rgba(209,154,30,.08);border:1px solid rgba(209,154,30,.3);
     border-radius:14px;padding:12px 16px;font-size:13px;line-height:1.6}
   .announce b{color:var(--warn);display:block;margin-bottom:4px;font-size:11.5px}
-  .announce .ic{margin-right:4px}
+  .announce b .ic svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
   .m-row{display:flex;gap:10px;max-width:76%;align-items:flex-start}
   .m-row.me{flex-direction:row-reverse;align-self:flex-end}
   .m-row.them{align-self:flex-start}
@@ -177,7 +176,9 @@
   .m-recalled{font-size:12.5px;color:var(--sub);font-style:italic;background:var(--panel) !important;
     border:1px dashed var(--line);box-shadow:none !important}
   .m-audio{display:flex;align-items:center;gap:9px;cursor:pointer;min-width:120px}
-  .m-audio .play-ic{width:20px;text-align:center;display:flex}
+  .m-audio .play-ic{width:20px;text-align:center}
+  .m-audio .play-ic .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round}
   .m-audio .bar{flex:1;height:24px;display:flex;align-items:center;gap:2.5px}
   .m-audio .bar i{width:2.5px;background:currentColor;opacity:.55;border-radius:2px;display:block}
   .m-audio.playing .bar i{animation:barPulse 1s infinite}
@@ -190,7 +191,7 @@
   #emojiPanel{background:var(--panel);padding:12px 16px;max-height:230px;overflow-y:auto;
     margin:0 10px;border-radius:14px 14px 0 0}
   .ep-tabs{display:flex;gap:8px;margin-bottom:10px}
-  .ep-tabs button{color:var(--sub);padding:5px 12px;border-radius:8px;font-size:12.5px;display:flex;align-items:center;gap:5px}
+  .ep-tabs button{color:var(--sub);padding:5px 12px;border-radius:8px;font-size:12.5px}
   .ep-tabs button.on{color:var(--ink);font-weight:600;background:var(--bg2);box-shadow:var(--shadow)}
   .emoji-grid{display:flex;flex-wrap:wrap;gap:3px}
   .emoji-grid button{width:35px;height:35px;font-size:21px;border-radius:8px;line-height:1;transition:transform .1s}
@@ -200,7 +201,7 @@
     padding:3px;cursor:pointer;object-fit:contain;transition:transform .12s}
   .sticker-grid .stk:hover{transform:scale(1.08);border-color:var(--acc)}
   .sticker-add{width:56px;height:56px;border-radius:10px;border:1px dashed var(--panel2);color:var(--sub);
-    font-size:20px;display:flex;align-items:center;justify-content:center;background:var(--bg2)}
+    font-size:22px;display:flex;align-items:center;justify-content:center;background:var(--bg2)}
   .sticker-add:hover{border-color:var(--acc);color:var(--acc)}
   #mentionPanel{position:absolute;bottom:64px;left:56px;background:var(--bg2);border:1px solid var(--line);
     border-radius:14px;box-shadow:var(--shadow-lg);padding:6px;z-index:60;max-height:200px;
@@ -211,10 +212,13 @@
   .mn-all{color:var(--unread);font-weight:600}
   .composer{display:flex;gap:9px;padding:12px 16px 16px;align-items:center;position:relative}
   .btn-emoji,.btn-mic{width:40px;height:44px;display:flex;align-items:center;justify-content:center;
-    border-radius:12px;flex-shrink:0;transition:all .15s;color:var(--sub)}
-  .btn-emoji:hover,.btn-mic:hover{background:var(--panel);color:var(--ink)}
-  .btn-emoji.on{background:rgba(7,193,96,.1);color:var(--acc)}
-  .btn-emoji svg,.btn-mic svg{width:20px;height:20px}
+    border-radius:12px;flex-shrink:0;transition:all .15s}
+  .btn-emoji:hover,.btn-mic:hover{background:var(--panel)}
+  .btn-emoji.on{background:rgba(7,193,96,.12);color:var(--acc)}
+  .btn-emoji svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round}
+  .btn-mic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round}
   .btn-mic.recording{background:var(--unread);color:#fff;animation:blink 1s infinite}
   @keyframes blink{50%{opacity:.5}}
   .composer input{flex:1;border:1px solid var(--line);border-radius:14px;padding:13px 16px;font-size:14px;
@@ -226,12 +230,12 @@
 
   #webview{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column}
   .wv-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--bg2);border-bottom:1px solid var(--line)}
-  .wv-bar button{color:var(--acc);font-size:13.5px;padding:7px 12px;border-radius:9px;display:flex;align-items:center;gap:5px}
+  .wv-bar button{color:var(--acc);font-size:13.5px;padding:7px 12px;border-radius:9px}
   .wv-bar button:hover{background:var(--panel)}
   .wv-title{flex:1;text-align:center;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .wv-url{font-size:10.5px;color:var(--sub);text-align:center;padding:5px;background:rgba(192,138,30,.06);
+  .wv-url{font-size:10.5px;color:var(--sub);text-align:center;padding:5px;background:rgba(209,154,30,.06);
     font-family:ui-monospace,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .wv-hint{font-size:10.5px;color:var(--warn);text-align:center;padding:5px;background:rgba(192,138,30,.06);line-height:1.5}
+  .wv-hint{font-size:10.5px;color:var(--warn);text-align:center;padding:5px;background:rgba(209,154,30,.06);line-height:1.5}
   #wvFrame{flex:1;width:100%;border:none;background:#fff}
 
   #imgViewer{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:550;
@@ -260,16 +264,18 @@
   .big-avatar{width:56px;height:56px;border-radius:14px;color:#fff;font-size:21px;font-weight:700;
     display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
   .fm-item{border-top:1px solid var(--line)}
-  .fm-item button{width:100%;text-align:left;padding:13px 6px;font-size:14px;border-radius:6px;transition:background .12s;display:flex;align-items:center;gap:9px}
-  .fm-item button .ic svg{width:16px;height:16px}
+  .fm-item button{width:100%;text-align:left;padding:13px 6px;font-size:14px;border-radius:6px;
+    transition:background .12s;display:flex;align-items:center;gap:10px}
   .fm-item button.danger{color:var(--unread)}
   .fm-item button:hover{background:var(--panel)}
+  .fm-item button .ic svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;
+    stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
   .gm-list{margin-bottom:10px}
   .gm-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
   .gm-item .avatar{width:34px;height:34px;font-size:13px}
   .gm-name{flex:1;font-size:13.5px}
   .gm-role{font-size:10px;border-radius:5px;padding:2px 7px;font-weight:600}
-  .role-owner{color:var(--warn);background:rgba(192,138,30,.12)}
+  .role-owner{color:var(--warn);background:rgba(209,154,30,.12)}
   .role-admin{color:var(--acc);background:rgba(7,193,96,.1)}
   .role-member{color:var(--sub);background:var(--panel)}
   .gm-ops{display:flex;gap:5px}
@@ -347,26 +353,17 @@
         <div class="sb-me-name" id="myName">—</div>
         <div class="sb-me-uid" id="myUidShort">—</div>
       </div>
-      <span class="sb-edit-hint ic"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>
+      <span style="margin-left:auto;color:var(--sub);font-size:12px">✏</span>
     </div>
     <div class="net-status" id="netStatus">● 正在连接…</div>
     <div class="btn-row">
-      <button type="button" id="btnAddFriend">
-        <span class="ic"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>
-        好友
-      </button>
-      <button type="button" id="btnCreateGroup">
-        <span class="ic"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-        群聊
-      </button>
+      <button type="button" id="btnAddFriend">＋ 好友</button>
+      <button type="button" id="btnCreateGroup">＋ 群聊</button>
     </div>
     <div class="sb-label">消息</div>
     <div id="contactList"></div>
     <div class="sb-foot">
-      <button type="button" id="btnTheme">
-        <span class="ic" id="themeIc"></span>
-        <span id="themeTxt">深色</span>
-      </button>
+      <button type="button" id="btnTheme"><span class="ic" id="themeIc"></span><span id="themeTxt">深色</span></button>
       <button type="button" id="btnBackup">备份</button>
       <button type="button" id="btnImport">导入</button>
       <button type="button" id="btnLogout">退出</button>
@@ -380,38 +377,32 @@
     </div>
     <div id="chatBox" hidden style="display:flex;flex-direction:column;flex:1;min-height:0">
       <div class="chat-head">
-        <button type="button" class="btn-back ic"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button type="button" class="btn-back" id="btnBack">‹</button>
         <div>
           <div class="ch-name" id="chName"></div>
           <div class="ch-uid" id="chUid"></div>
         </div>
         <div class="ch-status"><span class="dot" id="chDot"></span><span id="chStatus">未连接</span></div>
-        <button type="button" class="btn-more ic" id="btnMore" title="聊天设置"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/><circle cx="5" cy="12" r="1.5"/></svg></button>
+        <button type="button" class="btn-more" id="btnMore" title="聊天设置">⋯</button>
       </div>
       <div id="msgs"></div>
       <div class="composer-wrap">
         <div id="mentionPanel" hidden></div>
         <div id="emojiPanel" hidden>
           <div class="ep-tabs">
-            <button type="button" id="epTabEmoji" class="on">
-              <span class="ic sm"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></span>
-              Emoji
-            </button>
-            <button type="button" id="epTabSticker">
-              <span class="ic sm"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
-              贴图
-            </button>
+            <button type="button" id="epTabEmoji" class="on">表情</button>
+            <button type="button" id="epTabSticker">贴图</button>
           </div>
           <div id="epEmoji" class="emoji-grid"></div>
           <div id="epSticker" class="sticker-grid" hidden></div>
         </div>
         <div class="composer">
           <button type="button" class="btn-emoji" id="btnEmoji" title="表情">
-            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>
           </button>
           <input id="msgInput" type="text" placeholder="输入消息…（群聊输入 @ 提醒成员）" maxlength="2000">
           <button type="button" class="btn-mic" id="btnMic" title="按住说话" hidden>
-            <svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
           </button>
           <button type="button" class="btn-send" id="btnSend">发送</button>
         </div>
@@ -422,10 +413,10 @@
 
 <div id="webview" hidden>
   <div class="wv-bar">
-    <button type="button" id="wvBack" class="ic btn-lg"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>返回</button>
+    <button type="button" id="wvBack">‹ 返回</button>
     <div class="wv-title" id="wvTitle">加载中…</div>
-    <button type="button" id="wvRefresh" class="ic btn-lg"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-    <button type="button" id="wvExternal" class="ic btn-lg"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14L21 3"/></svg></button>
+    <button type="button" id="wvRefresh">刷新</button>
+    <button type="button" id="wvExternal">新窗口</button>
   </div>
   <div class="wv-url" id="wvUrl"></div>
   <div class="wv-hint">部分网站禁止内嵌显示为空白，请点「新窗口」打开</div>
@@ -506,10 +497,10 @@
     <h3 id="gmTitle">群聊信息</h3>
     <div class="gm-list" id="gmList"></div>
     <div class="form-err" id="gmErr"></div>
-    <div class="fm-item"><button type="button" id="btnGroupAnnounce"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 11l18-7-4 16-6-4-3 3v-5z"/></svg></span>群公告</button></div>
-    <div class="fm-item"><button type="button" id="btnGroupInvite"><span class="ic"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></span>邀请好友进群</button></div>
-    <div class="fm-item"><button type="button" class="danger" id="btnGroupLeave"><span class="ic"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg></span>退出群聊</button></div>
-    <div class="fm-item" id="disbandRow" hidden><button type="button" class="danger" id="btnGroupDisband"><span class="ic"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></span>解散群聊</button></div>
+    <div class="fm-item"><button type="button" id="btnGroupAnnounce"><span class="ic" id="annIc"></span><span>群公告</span></button></div>
+    <div class="fm-item"><button type="button" id="btnGroupInvite"><span class="ic" id="invIc"></span><span>邀请好友进群</span></button></div>
+    <div class="fm-item"><button type="button" id="btnGroupLeave" class="danger"><span class="ic" id="leaveIc"></span><span id="leaveTxt">退出群聊</span></button></div>
+    <div class="fm-item" id="disbandRow" hidden><button type="button" class="danger" id="btnGroupDisband"><span class="ic" id="disbIc"></span><span>解散群聊</span></button></div>
   </div>
 </div>
 
@@ -534,9 +525,9 @@
         <div style="font-size:11px;color:var(--sub);font-family:ui-monospace,Menlo,monospace" id="fmUid"></div>
       </div>
     </div>
-    <div class="fm-item"><button type="button" id="btnSetRemark"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span>设置备注名</button></div>
-    <div class="fm-item"><button type="button" id="btnClearHistory"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></span>清空聊天记录</button></div>
-    <div class="fm-item"><button type="button" class="danger" id="btnDeleteFriend"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></span>删除好友</button></div>
+    <div class="fm-item"><button type="button" id="btnSetRemark"><span class="ic" id="remIc"></span><span>设置备注名</span></button></div>
+    <div class="fm-item"><button type="button" id="btnClearHistory"><span class="ic" id="clrIc"></span><span>清空聊天记录</span></button></div>
+    <div class="fm-item"><button type="button" class="danger" id="btnDeleteFriend"><span class="ic" id="delIc"></span><span>删除好友</span></button></div>
   </div>
 </div>
 
@@ -584,28 +575,6 @@ var SB_URL = 'https://ilhalqmtgjmyfdusyrch.supabase.co';
 var SB_KEY = 'sb_publishable_ksRXPTi9gKaqN1QZVfkKBw_4UZprqWc';
 var SB_TABLE = 'az_mail';
 var SB_USERS = 'az_users';
-
-/* ══ SVG 图标库（界面用，无 emoji） ══ */
-var ICONS = {
-  copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-  recall: '<svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>',
-  shield: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-  forward: '<svg viewBox="0 0 24 24"><path d="M15 17l5-5-5-5"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>',
-  remark: '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
-  clear: '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>',
-  del: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>',
-  announce: '<svg viewBox="0 0 24 24"><path d="M3 11l18-7-4 16-6-4-3 3v-5z"/></svg>',
-  leave: '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>',
-  disband: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
-  moon: '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
-  sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
-  users: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
-  play: '<svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>',
-  pause: '<svg viewBox="0 0 24 24"><path d="M7 4v16M17 4v16"/></svg>'
-};
-function icHTML(name){
-  return '<span class="ic">' + (ICONS[name] || '') + '</span>';
-}
 
 window.onerror = function(msg, src, line){
   try { showToast('脚本出错：' + msg + '（第 ' + line + ' 行）', true); } catch(e) {}
@@ -712,7 +681,23 @@ function decPass(stored){
   } catch(e) { return null; }
 }
 
-function $(id){ return document.getElementById(id); }
+/* ═══════════ 防御式 $：元素缺失时不崩溃（修复 null.onclick 报错） ═══════════ */
+function $(id){
+  var el = document.getElementById(id);
+  if (el) return el;
+  console.warn('[AzChat] 元素不存在：#' + id + '（相关功能已跳过）');
+  return {
+    hidden: true, disabled: false, value: '', textContent: '', innerHTML: '',
+    style: {}, dataset: {},
+    classList: { add:function(){}, remove:function(){}, toggle:function(){return false;}, contains:function(){return false;} },
+    addEventListener: function(){},
+    appendChild: function(){}, removeChild: function(){}, insertBefore: function(){},
+    querySelectorAll: function(){ return []; },
+    setAttribute: function(){}, getAttribute: function(){ return null; },
+    focus: function(){}, click: function(){}
+  };
+}
+
 var AV_COLORS = ['#7A8B99','#8B7D9B','#99806E','#6E8B7B','#9B7D86','#6E7F9B','#8B9B6E','#9B8B6E'];
 var toastTimer = null;
 function showToast(msg, isErr){
@@ -786,6 +771,34 @@ function displayName(rec, uid, fallback){
   return fallback || (f ? f.name : uid);
 }
 
+/* ═══════════ SVG 图标（界面图标，无 emoji） ═══════════ */
+var ICONS = {
+  copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  recall: '<svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>',
+  shield: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  forward: '<svg viewBox="0 0 24 24"><path d="M15 17l5-5-5-5"/><path d="M4 18v-2a4 4 0 0 1 4-4h12"/></svg>',
+  remark: '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
+  clear: '<svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>',
+  del: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>',
+  announce: '<svg viewBox="0 0 24 24"><path d="M3 11l18-7-4 16-6-4-3 3v-5z"/></svg>',
+  leave: '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>',
+  disband: '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  moon: '<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+  users: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  play: '<svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>',
+  pause: '<svg viewBox="0 0 24 24"><path d="M7 4v16M17 4v16"/></svg>',
+  invite: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>'
+};
+function icHTML(name){
+  return '<span class="ic" style="display:inline-flex;width:15px;height:15px;flex-shrink:0">' +
+         (ICONS[name] || '') + '</span>';
+}
+function icSvg(name){
+  return '<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block">' +
+         (ICONS[name] || '') + '</svg>';
+}
+
 /* ═══════════ 主题切换 ═══════════ */
 (function(){
   var t = storage.getItem('azchat_theme');
@@ -793,7 +806,7 @@ function displayName(rec, uid, fallback){
 })();
 function updateThemeBtn(){
   var dark = document.documentElement.classList.contains('dark');
-  $('themeIc').innerHTML = ICONS[dark ? 'sun' : 'moon'];
+  $('themeIc').innerHTML = icSvg(dark ? 'sun' : 'moon');
   $('themeTxt').textContent = dark ? '浅色' : '深色';
 }
  $('btnTheme').onclick = function(){
@@ -802,6 +815,15 @@ function updateThemeBtn(){
   updateThemeBtn();
 };
 updateThemeBtn();
+
+/* 静态图标填充 */
+ $('annIc').innerHTML = icSvg('announce');
+ $('invIc').innerHTML = icSvg('invite');
+ $('leaveIc').innerHTML = icSvg('leave');
+ $('disbIc').innerHTML = icSvg('disband');
+ $('remIc').innerHTML = icSvg('remark');
+ $('clrIc').innerHTML = icSvg('clear');
+ $('delIc').innerHTML = icSvg('del');
 
 /* ═══════════ 自定义右键菜单 ═══════════ */
 function hideCtxMenu(){ $('ctxMenu').hidden = true; }
@@ -1476,7 +1498,7 @@ function startPeer(){
   });
 }
 
-/* ═══════════ 统一投递 ═══════════ */
+/* ═══════════ 统一投递（失败自动重试一次，再失败走云端） ═══════════ */
 function queueLocal(toUid, key, payload, msgTs){
   var rec = meRec();
   if (!rec) return;
@@ -1484,11 +1506,20 @@ function queueLocal(toUid, key, payload, msgTs){
   if (rec.outbox.length > 200) rec.outbox = rec.outbox.slice(-200);
   saveMe(rec);
 }
-function deliverOrQueue(toUid, key, payload, msgTs){
+function deliverOrQueue(toUid, key, payload, msgTs, _retried){
   ensureConn(toUid, function(c){
     try { c.send(payload); } catch(e) {}
     markSent(key, msgTs);
   }, function(){
+    /* P2P 直连失败：自动重试一次（解决竞态导致的偶发失败），仍失败走云端信箱 */
+    if (!_retried) {
+      setTimeout(function(){
+        if (!me) return;
+        delete conns[toUid];
+        deliverOrQueue(toUid, key, payload, msgTs, true);
+      }, 3000);
+      return;
+    }
     if (cloudReady) {
       cloudSend(toUid, payload, key, msgTs, function(){
         queueLocal(toUid, key, payload, msgTs);
@@ -2179,11 +2210,7 @@ function openGroupModal(gid){
     list.appendChild(row);
   });
   $('disbandRow').hidden = (g.owner !== myUid);
-  $('btnGroupLeave').textContent = '';
-  var leaveSpan = document.createElement('span');
-  leaveSpan.innerHTML = icHTML('leave');
-  leaveSpan.appendChild(document.createTextNode(g.owner === myUid ? ' 群主不能退群（可解散）' : ' 退出群聊'));
-  $('btnGroupLeave').appendChild(leaveSpan);
+  $('leaveTxt').textContent = (g.owner === myUid ? '群主不能退群（可解散）' : '退出群聊');
   openModal('groupModal');
 }
 function notifyRole(gid, uid, role){
@@ -2343,7 +2370,7 @@ function renderContacts(){
       var gav = document.createElement('div');
       gav.className = 'avatar sm';
       gav.style.background = 'var(--acc)';
-      gav.innerHTML = '<span class="ic" style="color:#fff">' + ICONS.users + '</span>';
+      gav.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
       item.appendChild(gav);
     } else {
       item.appendChild(avatarEl(it.name, it.key, false, it.avatar));
@@ -2488,7 +2515,7 @@ function buildAudioEl(m, isMe){
   wrap.className = 'm-audio';
   var ic = document.createElement('span');
   ic.className = 'play-ic';
-  ic.innerHTML = '<span class="ic">' + ICONS.play + '</span>';
+  ic.innerHTML = icSvg('play');
   var bar = document.createElement('span');
   bar.className = 'bar';
   var seed = m.ts || 0;
@@ -2500,7 +2527,7 @@ function buildAudioEl(m, isMe){
   }
   var dur = document.createElement('span');
   dur.className = 'dur';
-  dur.textContent = (m.dur || 0) + '"';
+  dur.textContent = (m.dur || 0) + 's';
   wrap.appendChild(ic); wrap.appendChild(bar); wrap.appendChild(dur);
   wrap.onclick = function(e){
     e.stopPropagation();
@@ -2514,10 +2541,10 @@ function buildAudioEl(m, isMe){
       audioPlayer = au;
       au._src = m.audio;
       wrap.classList.add('playing');
-      ic.innerHTML = '<span class="ic">' + ICONS.pause + '</span>';
+      ic.innerHTML = icSvg('pause');
       au.onended = au.onpause = function(){
         wrap.classList.remove('playing');
-        ic.innerHTML = '<span class="ic">' + ICONS.play + '</span>';
+        ic.innerHTML = icSvg('play');
       };
       au.play();
     } catch(er) {
@@ -2539,7 +2566,7 @@ function renderMsgs(){
     var ann = document.createElement('div');
     ann.className = 'announce';
     var annB = document.createElement('b');
-    annB.innerHTML = icHTML('announce') + '群公告' + (g.announceBy ? '（' + g.announceBy + '）' : '');
+    annB.innerHTML = icSvg('announce') + ' 群公告' + (g.announceBy ? '（' + g.announceBy + '）' : '');
     ann.appendChild(annB);
     ann.appendChild(document.createTextNode(g.announce));
     box.appendChild(ann);
@@ -2826,6 +2853,7 @@ function startRecording(){
         var dur = Math.round((Date.now() - recStartTs) / 1000);
         var btn = $('btnMic');
         btn.classList.remove('recording');
+        btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>';
         if (recTimerInt) { clearInterval(recTimerInt); recTimerInt = null; }
         if (dur < 1) { showToast('说话时间太短'); mediaRecorder = null; return; }
         var blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
@@ -2952,7 +2980,7 @@ function sendMsg(){
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
 };
 
-/* ═══════════ 表情 & 贴图（面板内容属于用户消息输入，允许 emoji） ═══════════ */
+/* ═══════════ 表情 & 贴图（用户消息内容允许 emoji） ═══════════ */
 var EMOJIS = ('😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😜 🤪 🤗 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 😯 😴 😌 😔 😕 🙃 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 😳 🤢 🤮 😷 🤒 🤕 🤑 🤠 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👏 🙌 🤝 💪 🙏 ❤️ 💔 💯 💢 💥 💧 ✨ 🎉 🎁 🌹 🍉 🍓 🍺 ☕ 🐶 🐱 🐼 🌙 ⭐ 🔥 ⚡ 🌈').split(/\s+/);
 var epTab = 'emoji';
 
