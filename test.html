@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AzChat</title>
 <style>
-  /* ══ 浅色主题（默认，微信绿配色） ══ */
   :root{
     --bg:#F2F2F2; --bg2:#FFFFFF; --panel:#F1F2F5; --panel2:#E7E9EE;
     --ink:#191919; --sub:#9A9A9A; --line:#E6E6E6;
@@ -17,7 +16,6 @@
     --shadow:0 1px 3px rgba(20,30,60,.06);
     --shadow-lg:0 8px 30px rgba(20,30,60,.12);
   }
-  /* ══ 深色主题 ══ */
   html.dark{
     --bg:#0D0F14; --bg2:#13161D; --panel:#1B1F2A; --panel2:#242A38;
     --ink:#E8EAF0; --sub:#7A8194; --line:#252B3A;
@@ -149,7 +147,7 @@
   .announce b{color:var(--warn);display:block;margin-bottom:4px;font-size:11.5px}
   .announce b .ic svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
-  .m-row{display:flex;gap:10px;max-width:76%;align-items:flex-start}
+  .m-row{display:flex;gap:10px;max-width:78%;align-items:flex-start}
   .m-row.me{flex-direction:row-reverse;align-self:flex-end}
   .m-row.them{align-self:flex-start}
   .m-avatar{width:34px;height:34px;border-radius:10px;color:#fff;font-size:13px;font-weight:700;
@@ -158,12 +156,12 @@
   .m-sender{font-size:11px;color:var(--sub);padding:0 6px}
   .m-bubble{padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.6;
     white-space:pre-wrap;word-break:break-word;position:relative;user-select:text}
-  .m-bubble.has-img{padding:5px;background:var(--bubble-them) !important;white-space:normal;box-shadow:var(--shadow)}
-  .m-bubble.has-img img{max-width:170px;max-height:170px;border-radius:12px;display:block;cursor:zoom-in}
+  .m-bubble.has-media{padding:5px;background:var(--bubble-them) !important;white-space:normal;box-shadow:var(--shadow)}
+  .m-bubble.has-media img,.m-bubble.has-media video{max-width:200px;max-height:200px;border-radius:12px;display:block;cursor:zoom-in}
   .them .m-bubble{background:var(--bubble-them);border-top-left-radius:5px;box-shadow:var(--shadow)}
   .me .m-bubble{background:var(--bubble-me);color:var(--bubble-me-text);border-top-right-radius:5px;
     box-shadow:var(--shadow)}
-  .me .m-bubble.has-img{background:var(--bubble-them) !important;color:var(--ink);box-shadow:var(--shadow)}
+  .me .m-bubble.has-media{background:var(--bubble-them) !important;color:var(--ink);box-shadow:var(--shadow)}
   .m-mention{background:rgba(7,193,96,.14);color:var(--acc);border-radius:5px;padding:1px 5px;font-weight:600}
   .me .m-mention{background:rgba(0,0,0,.12);color:var(--bubble-me-text)}
   .m-pending{font-size:10px;color:rgba(0,0,0,.45);margin-left:5px}
@@ -183,6 +181,27 @@
   .m-audio .dur{font-size:11px;color:var(--sub);flex-shrink:0;font-family:ui-monospace,Menlo,monospace}
   .m-link{color:var(--acc);text-decoration:none;cursor:pointer;word-break:break-all}
   .m-link:hover{text-decoration:underline}
+  /* 视频播放器 */
+  .m-video{position:relative;border-radius:12px;overflow:hidden;background:#000;cursor:pointer}
+  .m-video video{display:block;max-width:200px;max-height:200px;width:auto}
+  .m-video .v-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.25);transition:background .15s}
+  .m-video:hover .v-play{background:rgba(0,0,0,.1)}
+  .m-video .v-play .v-ic{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.9);
+    display:flex;align-items:center;justify-content:center}
+  .m-video .v-play .v-ic svg{width:16px;height:16px;fill:var(--ink);stroke:none;margin-left:2px}
+  .m-video .v-dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;
+    font-size:10px;padding:1px 6px;border-radius:4px;font-family:ui-monospace,Menlo,monospace}
+  .m-video .v-size{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;
+    font-size:10px;padding:1px 6px;border-radius:4px;font-family:ui-monospace,Menlo,monospace}
+  /* 视频全屏查看 */
+  #vidViewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:560;
+    display:flex;flex-direction:column;align-items:center;justify-content:center}
+  #vidViewer video{max-width:94vw;max-height:84vh;border-radius:10px;outline:none}
+  .vv-bar{margin-top:14px;display:flex;gap:12px}
+  .vv-bar button{color:#fff;font-size:13.5px;padding:9px 20px;border-radius:10px;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
+  .vv-bar button:hover{background:rgba(255,255,255,.2)}
 
   .composer-wrap{background:var(--bg2);border-top:1px solid var(--line)}
   #emojiPanel{background:var(--panel);padding:12px 16px;max-height:230px;overflow-y:auto;
@@ -208,11 +227,11 @@
   .mn-item .avatar{width:28px;height:28px;font-size:11px}
   .mn-all{color:var(--unread);font-weight:600}
   .composer{display:flex;gap:9px;padding:12px 16px 16px;align-items:center;position:relative}
-  .btn-emoji,.btn-mic{width:40px;height:44px;display:flex;align-items:center;justify-content:center;
+  .btn-emoji,.btn-mic,.btn-media{width:40px;height:44px;display:flex;align-items:center;justify-content:center;
     border-radius:12px;flex-shrink:0;transition:all .15s}
-  .btn-emoji:hover,.btn-mic:hover{background:var(--panel)}
+  .btn-emoji:hover,.btn-mic:hover,.btn-media:hover{background:var(--panel)}
   .btn-emoji.on{background:rgba(7,193,96,.12);color:var(--acc)}
-  .btn-emoji svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;
+  .btn-emoji svg,.btn-media svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round}
   .btn-mic svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round}
@@ -295,7 +314,9 @@
     #chatPane{position:fixed;inset:0;z-index:10;display:none}
     #chatPane.open{display:flex}
     .btn-back{display:flex}
-    .m-row{max-width:86%}
+    .m-row{max-width:88%}
+    .m-bubble.has-media img,.m-bubble.has-media video{max-width:60vw}
+    .m-video video{max-width:60vw}
   }
 </style>
 </head>
@@ -398,6 +419,9 @@
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg>
           </button>
           <input id="msgInput" type="text" placeholder="输入消息…（群聊输入 @ 提醒成员）" maxlength="2000">
+          <button type="button" class="btn-media" id="btnMedia" title="发送图片/视频">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          </button>
           <button type="button" class="btn-mic" id="btnMic" title="按住说话" hidden>
             <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
           </button>
@@ -421,6 +445,15 @@
 </div>
 
 <div id="imgViewer" hidden><img id="imgViewerSrc" alt=""></div>
+
+<!-- 视频全屏播放 -->
+<div id="vidViewer" hidden>
+  <video id="vidViewerEl" controls playsinline></video>
+  <div class="vv-bar">
+    <button type="button" id="vidClose">关闭</button>
+    <button type="button" id="vidOpen">在浏览器打开</button>
+  </div>
+</div>
 
 <div class="mask" id="addModal" hidden>
   <div class="modal">
@@ -565,6 +598,7 @@
 <input type="file" id="importFile" accept=".json,application/json" style="display:none">
 <input type="file" id="stickerFile" accept="image/*" style="display:none">
 <input type="file" id="avatarFile" accept="image/*" style="display:none">
+<input type="file" id="mediaFile" accept="image/*,video/*" style="display:none">
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
@@ -572,6 +606,9 @@ var SB_URL = 'https://ilhalqmtgjmyfdusyrch.supabase.co';
 var SB_KEY = 'sb_publishable_ksRXPTi9gKaqN1QZVfkKBw_4UZprqWc';
 var SB_TABLE = 'az_mail';
 var SB_USERS = 'az_users';
+
+/* 视频限制（base64 后） */
+var VIDEO_MAX = 3000000;   /* 3MB，约能发 15~30 秒中等画质的短视频 */
 
 window.onerror = function(msg, src, line){
   try { showToast('脚本出错：' + msg + '（第 ' + line + ' 行）', true); } catch(e) {}
@@ -678,7 +715,6 @@ function decPass(stored){
   } catch(e) { return null; }
 }
 
-/* ═══════════ 防御式 $ ═══════════ */
 function $(id){
   var el = document.getElementById(id);
   if (el) return el;
@@ -710,6 +746,11 @@ function timeStr(ts){
   var hm = two(d.getHours()) + ':' + two(d.getMinutes());
   if (d.toDateString() === now.toDateString()) return hm;
   return (d.getMonth()+1) + '月' + d.getDate() + '日 ' + hm;
+}
+function fmtSize(bytes){
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(0) + 'KB';
+  return (bytes/1048576).toFixed(1) + 'MB';
 }
 function avatarColor(str){
   var n = 0;
@@ -768,7 +809,6 @@ function displayName(rec, uid, fallback){
   return fallback || (f ? f.name : uid);
 }
 
-/* ═══════════ SVG 图标 ═══════════ */
 var ICONS = {
   copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
   recall: '<svg viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></svg>',
@@ -821,11 +861,9 @@ updateThemeBtn();
  $('clrIc').innerHTML = icSvg('clear');
  $('delIc').innerHTML = icSvg('del');
 
-/* ═══════════ 消息去重（核心修复：防重复投递） ═══════════
-   同一条消息可能经 P2P / 云端信箱 / 群主转发多条路径到达，
-   以（发送者 + 时间戳）为唯一标识，重复一律丢弃 */
-var msgSeen = {};    /* 会话内已收消息：key -> {"from|ts":1} */
-var fwdSeen = {};    /* 群主已转发：gid -> {"from|ts":1} */
+/* ═══════════ 消息去重 ═══════════ */
+var msgSeen = {};
+var fwdSeen = {};
 function isDupMsg(key, from, ts){
   var sk = from + '|' + ts;
   var s = msgSeen[key];
@@ -913,17 +951,17 @@ function msgCtxMenu(e, m, isMe, isGroup, g){
           deliverOrQueue(mm2.uid, currentChat, payload, 0);
         });
       }
-      delete m.text; delete m.img; delete m.audio;
+      delete m.text; delete m.img; delete m.audio; delete m.video;
       m.recalled = true;
       saveMe(rec);
       renderMsgs();
     }});
   }
-  if (!m.recalled && (m.text || m.img)) {
+  if (!m.recalled && (m.text || m.img || m.video)) {
     items.push('-');
     items.push({ icon: 'forward', label: '复制内容以便转发', fn: function(){
       if (m.text) copyText(m.text, '内容已复制，粘贴到其他聊天发送');
-      else copyText(m.img, '图片数据已复制');
+      else copyText(m.img || m.video, '媒体数据已复制');
     }});
   }
   if (items.length) showCtxMenu(e.clientX, e.clientY, items);
@@ -1075,7 +1113,6 @@ function cloudFetch(){
         fresh.push(row);
       });
       if (!fresh.length) return;
-      /* 先删除云端记录，再处理：防止处理期间刷新导致重投（重复） */
       var ids = fresh.map(function(r){ return r.id; });
       sbClient.from(SB_TABLE).delete().in('id', ids).then(function(){});
       var count = 0;
@@ -1628,14 +1665,13 @@ function handleData(c, d){
   }
 
   if (d.t === 'recall') {
-    /* 撤回幂等，仅提示去重 */
     if (isDupMsg('__recall', uid + '|' + d.key, d.ts)) return;
     var rkey = d.key, rts = d.ts;
     if (rec.chats[rkey]) {
       for (var ci = 0; ci < rec.chats[rkey].length; ci++) {
         var cm = rec.chats[rkey][ci];
         if (cm.ts === rts && cm.w === 'them') {
-          delete cm.text; delete cm.img; delete cm.audio;
+          delete cm.text; delete cm.img; delete cm.audio; delete cm.video;
           cm.recalled = true;
           saveMe(rec);
           if (currentChat === rkey) renderMsgs();
@@ -1704,21 +1740,21 @@ function handleData(c, d){
       if (g1.members[j].uid === uid) { senderIn = true; break; }
     }
     if (!senderIn) return;
-    /* 核心去重：同一（发送者+时间戳）只处理一次 */
     if (isDupMsg(d.gid, uid, d.ts)) return;
-    if (typeof d.audio === 'string' && d.audio.indexOf('data:audio/') === 0 && d.audio.length <= 1200000) {
+    if (typeof d.video === 'string' && d.video.indexOf('data:video/') === 0 && d.video.length <= VIDEO_MAX) {
+      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), video:d.video, vsize:d.vsize||0, mentions:d.mentions||[], ts:d.ts||Date.now() });
+    } else if (typeof d.audio === 'string' && d.audio.indexOf('data:audio/') === 0 && d.audio.length <= 1200000) {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), audio:d.audio, dur:d.dur||0, mentions:d.mentions||[], ts:d.ts||Date.now() });
     } else if (typeof d.text === 'string') {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), text:String(d.text).slice(0,2000), mentions:d.mentions||[], ts:d.ts||Date.now() });
     } else if (typeof d.img === 'string' && d.img.indexOf('data:image/') === 0 && d.img.length <= 500000) {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), img:d.img, mentions:d.mentions||[], ts:d.ts||Date.now() });
     }
-    /* 群主转发：同一消息只转发一次（防放大） */
     if (g1.owner === myUid && uid !== myUid) {
       if (!isDupFwd(d.gid, uid, d.ts)) {
         g1.members.forEach(function(m){
           if (m.uid === uid || m.uid === myUid) return;
-          deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, audio:d.audio, dur:d.dur, mentions:d.mentions, gid:d.gid, ts:d.ts }, 0);
+          deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, audio:d.audio, video:d.video, vsize:d.vsize, dur:d.dur, mentions:d.mentions, gid:d.gid, ts:d.ts }, 0);
         });
       }
     }
@@ -1840,7 +1876,6 @@ function handleData(c, d){
 
   if (!rec.contacts[uid]) return;
   if (c !== dummyConn && !conns[uid]) { conns[uid] = c; updateChatStatus(); }
-  /* 单聊消息去重 */
   if (d.t === 'chat' && typeof d.text === 'string') {
     if (isDupMsg(uid, uid, d.ts)) return;
     receiveMsg(uid, { w:'them', text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
@@ -1852,6 +1887,10 @@ function handleData(c, d){
     if (d.audio.length > 1200000) return;
     if (isDupMsg(uid, uid, d.ts)) return;
     receiveMsg(uid, { w:'them', audio:d.audio, dur:d.dur||0, ts:d.ts||Date.now() });
+  } else if (d.t === 'video' && typeof d.video === 'string' && d.video.indexOf('data:video/') === 0) {
+    if (d.video.length > VIDEO_MAX) return;
+    if (isDupMsg(uid, uid, d.ts)) return;
+    receiveMsg(uid, { w:'them', video:d.video, vsize:d.vsize||0, ts:d.ts||Date.now() });
   }
 }
 
@@ -2489,8 +2528,13 @@ function buildBubbleContent(bub, m, isMe){
     bub.appendChild(buildAudioEl(m, isMe));
     return;
   }
+  if (m.video) {
+    bub.className += ' has-media';
+    bub.appendChild(buildVideoEl(m, isMe));
+    return;
+  }
   if (m.img) {
-    bub.className += ' has-img';
+    bub.className += ' has-media';
     var img = document.createElement('img');
     img.src = m.img;
     img.alt = '贴图';
@@ -2542,46 +2586,62 @@ function buildBubbleContent(bub, m, isMe){
   });
 }
 
-var audioPlayer = null;
-function buildAudioEl(m, isMe){
+/* 视频播放元素：封面 + 播放按钮 + 时长/大小角标，点击全屏播放 */
+function buildVideoEl(m, isMe){
   var wrap = document.createElement('div');
-  wrap.className = 'm-audio';
-  var ic = document.createElement('span');
-  ic.className = 'play-ic';
-  ic.innerHTML = icSvg('play');
-  var bar = document.createElement('span');
-  bar.className = 'bar';
-  var seed = m.ts || 0;
-  for (var i = 0; i < 18; i++) {
-    var b = document.createElement('i');
-    var h = 6 + ((seed * (i + 7)) % 17);
-    b.style.height = h + 'px';
-    bar.appendChild(b);
-  }
+  wrap.className = 'm-video';
+
+  var video = document.createElement('video');
+  video.src = m.video;
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = 'metadata';
+  /* 静音播放前 0.1 秒作为封面 */
+  video.onloadeddata = function(){
+    try { video.currentTime = 0.1; } catch(e) {}
+  };
+
+  var playOv = document.createElement('div');
+  playOv.className = 'v-play';
+  var pic = document.createElement('span');
+  pic.className = 'v-ic';
+  pic.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+  playOv.appendChild(pic);
+
   var dur = document.createElement('span');
-  dur.className = 'dur';
-  dur.textContent = (m.dur || 0) + 's';
-  wrap.appendChild(ic); wrap.appendChild(bar); wrap.appendChild(dur);
+  dur.className = 'v-dur';
+  dur.textContent = '…';
+
+  var sz = document.createElement('span');
+  sz.className = 'v-size';
+  sz.textContent = fmtSize(Math.round((m.video.length - m.video.indexOf(',') - 1) * 0.75));
+
+  wrap.appendChild(video);
+  wrap.appendChild(playOv);
+  wrap.appendChild(dur);
+  wrap.appendChild(sz);
+
+  video.onloadedmetadata = function(){
+    if (isFinite(video.duration)) {
+      var d = Math.round(video.duration);
+      dur.textContent = d < 60 ? (d + 's') : Math.floor(d/60) + 'm' + (d%60) + 's';
+    }
+  };
+
+  var opened = false;
   wrap.onclick = function(e){
     e.stopPropagation();
-    if (audioPlayer) { try { audioPlayer.pause(); } catch(er) {} }
-    if (audioPlayer && audioPlayer._src === m.audio && !audioPlayer.paused) {
-      audioPlayer = null;
-      return;
+    /* 点击 → 全屏播放器 */
+    var vv = $('vidViewerEl');
+    if (!vv.src || vv.src !== m.video) {
+      vv.src = m.video;
+      opened = false;
     }
-    try {
-      var au = new Audio(m.audio);
-      audioPlayer = au;
-      au._src = m.audio;
-      wrap.classList.add('playing');
-      ic.innerHTML = icSvg('pause');
-      au.onended = au.onpause = function(){
-        wrap.classList.remove('playing');
-        ic.innerHTML = icSvg('play');
-      };
-      au.play();
-    } catch(er) {
-      showToast('播放失败：' + er.message, true);
+    $('vidViewer').hidden = false;
+    if (!opened) {
+      var p = vv.play();
+      if (p && p.catch) p.catch(function(){});
+      opened = true;
     }
   };
   return wrap;
@@ -2701,7 +2761,7 @@ function recallMsg(m){
       deliverOrQueue(g.owner, key, payload, 0);
     }
   }
-  delete m.text; delete m.img; delete m.audio;
+  delete m.text; delete m.img; delete m.audio; delete m.video;
   m.recalled = true;
   saveMe(rec);
   renderMsgs();
@@ -2746,6 +2806,7 @@ function receiveMsg(key, msg){
       unread[key] = (unread[key] || 0) + 1;
     }
     var preview = msg.sysText ? msg.sysText.slice(0,20) :
+                  msg.video ? '[视频]' :
                   msg.audio ? '[语音]' :
                   msg.img ? '[贴图]' : String(msg.text || '').replace(/\[\[mn:[^\]]+\]\]/g, '@').slice(0, 20);
     var who = msg.fromName || (rec.contacts[key] ? displayName(rec, key, rec.contacts[key].name) : (rec.groups[key] ? rec.groups[key].name : ''));
@@ -2754,9 +2815,7 @@ function receiveMsg(key, msg){
   renderContacts();
 }
 
-/* ═══════════ 连接建立（修复迟到连接导致的重复发送） ═══════════
-   关键：超时判定失败后，迟到的连接一律丢弃，
-   其携带的回调不再触发——否则同一消息会被发两次 */
+/* ═══════════ 连接建立（迟到连接作废） ═══════════ */
 function ensureConn(uid, cb, onFail){
   var c = conns[uid];
   if (c && c.open) { if (cb) cb(c); return; }
@@ -2767,7 +2826,7 @@ function ensureConn(uid, cb, onFail){
   }
   var nc = peer.connect(peerIdOf(uid), { reliable: true });
   var opened = false;
-  var finished = false;   /* 本连接的最终状态是否已决 */
+  var finished = false;
   var timer = setTimeout(function(){
     if (!opened && !finished) {
       finished = true;
@@ -2778,7 +2837,6 @@ function ensureConn(uid, cb, onFail){
   }, 15000);
   nc.on('open', function(){
     if (finished) {
-      /* 超时后才连上：本次连接作废（重试已另起连接），不能再用旧回调发消息 */
       try { nc.close(); } catch(e) {}
       return;
     }
@@ -2967,6 +3025,207 @@ function sendAudio(dataUrl, dur){
   }
 }
 
+/* ═══════════ 图片/视频 选择与压缩 ═══════════ */
+ $('btnMedia').onclick = function(){
+  if (!currentChat) return;
+  $('mediaFile').value = '';
+  $('mediaFile').click();
+};
+ $('mediaFile').onchange = function(){
+  var f = this.files[0];
+  if (!f) return;
+  if (f.type.indexOf('video/') === 0) {
+    handleVideoFile(f);
+  } else if (f.type.indexOf('image/') === 0) {
+    if (f.size > 8 * 1024 * 1024) { showToast('图片太大，请选 8MB 以内', true); return; }
+    compressImage(f, 800, function(dataUrl, err){
+      if (err) { showToast('图片处理失败：' + err, true); return; }
+      sendImage(dataUrl);
+    });
+  } else {
+    showToast('仅支持图片或视频', true);
+  }
+};
+
+/* 视频压缩：转码为小尺寸低码率 webm，控制在可发送体积内 */
+function handleVideoFile(file){
+  if (!URL.createObjectURL) { showToast('浏览器不支持视频处理', true); return; }
+  showToast('正在压缩视频，请稍候…');
+  var inUrl = URL.createObjectURL(file);
+  var v = document.createElement('video');
+  v.muted = true;
+  v.playsInline = true;
+  v.src = inUrl;
+  var failed = setTimeout(function(){
+    cleanup();
+    showToast('视频读取超时或格式不支持', true);
+  }, 15000);
+  function cleanup(){
+    clearTimeout(failed);
+    try { URL.revokeObjectURL(inUrl); } catch(e) {}
+  }
+  v.onloadedmetadata = function(){
+    /* 太长的视频直接拒绝（压缩后体积不可控） */
+    if (v.duration > 60) {
+      cleanup();
+      showToast('视频过长（超 60 秒），请剪辑后再发', true);
+      return;
+    }
+    var MAXW = 480;
+    var scale = Math.min(1, MAXW / Math.max(v.videoWidth, 1));
+    var cv = document.createElement('canvas');
+    cv.width = Math.max(2, Math.round(v.videoWidth * scale / 2) * 2);
+    cv.height = Math.max(2, Math.round(v.videoHeight * scale / 2) * 2);
+    var ctx = cv.getContext('2d');
+    var stream;
+    try {
+      stream = cv.captureStream(15);   /* 15fps 足够看 */
+    } catch(e) {
+      cleanup();
+      showToast('此浏览器不支持视频压缩', true);
+      return;
+    }
+    var audioStream = null;
+    try {
+      /* 提取原视频音轨 */
+      var av = v.captureStream ? null : null;
+    } catch(e) {}
+    /* 用 WebAudio 重新封装原视频的音频（若可获取） */
+    try {
+      var ac = new (window.AudioContext || window.webkitAudioContext)();
+      var srcNode = ac.createMediaElementSource(v);
+      var dest = ac.createMediaStreamDestination();
+      srcNode.connect(dest);
+      srcNode.connect(ac.destination);
+      audioStream = dest.stream;
+      audioStream._ac = ac;
+    } catch(e) { audioStream = null; }
+    var tracks = stream.getVideoTracks();
+    if (audioStream && audioStream.getAudioTracks().length) {
+      tracks = tracks.concat(audioStream.getAudioTracks());
+    }
+    var mixStream = new MediaStream(tracks);
+    var mtype = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus') ? 'video/webm;codecs=vp8,opus'
+              : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '';
+    if (!mtype) {
+      cleanup();
+      showToast('此浏览器不支持视频压缩', true);
+      return;
+    }
+    var mr;
+    try {
+      mr = new MediaRecorder(mixStream, {
+        mimeType: mtype,
+        videoBitsPerSecond: 500000,    /* 500kbps，够清晰又小 */
+        audioBitsPerSecond: 48000
+      });
+    } catch(e) {
+      cleanup();
+      showToast('此浏览器不支持视频压缩', true);
+      return;
+    }
+    var chunks = [];
+    mr.ondataavailable = function(ev){
+      if (ev.data && ev.data.size) chunks.push(ev.data);
+    };
+    mr.onstop = function(){
+      cleanup();
+      if (audioStream && audioStream._ac) { try { audioStream._ac.close(); } catch(e2) {} }
+      var blob = new Blob(chunks, { type: 'video/webm' });
+      var reader = new FileReader();
+      reader.onload = function(){
+        var dataUrl = reader.result;
+        if (dataUrl.length > VIDEO_MAX) {
+          showToast('视频压缩后仍过大（' + fmtSize(blob.size) + '），请缩短时长', true);
+          return;
+        }
+        showToast('压缩完成（' + fmtSize(blob.size) + '），发送中…');
+        sendVideo(dataUrl, blob.size);
+      };
+      reader.readAsDataURL(blob);
+    };
+    /* 播放并录制：视频画到 canvas，音频直连 */
+    v.onended = function(){ setTimeout(function(){ try { mr.stop(); } catch(e) {} }, 300); };
+    v.onerror = function(){
+      try { mr.stop(); } catch(e) {}
+    };
+    v.currentTime = 0;
+    v.muted = false;
+    v.play().then(function(){
+      mr.start(250);
+      function drawLoop(){
+        if (v.ended || v.paused) return;
+        ctx.drawImage(v, 0, 0, cv.width, cv.height);
+        requestAnimationFrame(drawLoop);
+      }
+      requestAnimationFrame(drawLoop);
+      /* 安全兜底：到时长上限强制停 */
+      setTimeout(function(){ try { if (mr.state === 'recording') mr.stop(); } catch(e) {} }, (v.duration + 2) * 1000);
+    }).catch(function(){
+      try { mr.stop(); } catch(e) {}
+    });
+  };
+  v.onerror = function(){
+    cleanup();
+    showToast('无法读取该视频文件', true);
+  };
+}
+
+function sendImage(dataUrl){
+  if (!currentChat) return;
+  var key = currentChat;
+  var rec = meRec();
+  if (!rec.chats[key]) rec.chats[key] = [];
+  var ts = Date.now();
+  var msg = { w: 'me', img: dataUrl, ts: ts, pending: true };
+  rec.chats[key].push(msg);
+  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
+  saveMe(rec);
+  renderMsgs();
+  if (chatType === 'group') {
+    var g = rec.groups[key];
+    if (!g) return;
+    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, img: dataUrl, gid: key, ts: ts };
+    deliverOrQueue(g.owner, key, payload, ts);
+    if (g.owner === myUid) {
+      g.members.forEach(function(m){
+        if (m.uid === myUid) return;
+        deliverOrQueue(m.uid, key, payload, 0);
+      });
+      markSent(key, ts);
+    }
+  } else {
+    deliverOrQueue(key, key, { t: 'sticker', uid: myUid, img: dataUrl, ts: ts }, ts);
+  }
+}
+function sendVideo(dataUrl, size){
+  if (!currentChat) return;
+  var key = currentChat;
+  var rec = meRec();
+  if (!rec.chats[key]) rec.chats[key] = [];
+  var ts = Date.now();
+  var msg = { w: 'me', video: dataUrl, vsize: size, ts: ts, pending: true };
+  rec.chats[key].push(msg);
+  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
+  saveMe(rec);
+  renderMsgs();
+  if (chatType === 'group') {
+    var g = rec.groups[key];
+    if (!g) return;
+    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, video: dataUrl, vsize: size, gid: key, ts: ts };
+    deliverOrQueue(g.owner, key, payload, ts);
+    if (g.owner === myUid) {
+      g.members.forEach(function(m){
+        if (m.uid === myUid) return;
+        deliverOrQueue(m.uid, key, payload, 0);
+      });
+      markSent(key, ts);
+    }
+  } else {
+    deliverOrQueue(key, key, { t: 'video', uid: myUid, video: dataUrl, vsize: size, ts: ts }, ts);
+  }
+}
+
 /* ═══════════ 发送消息 ═══════════ */
 function sendMsg(){
   var input = $('msgInput');
@@ -3028,7 +3287,7 @@ function sendMsg(){
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
 };
 
-/* ═══════════ 表情 & 贴图（用户消息内容允许 emoji） ═══════════ */
+/* ═══════════ 表情 & 贴图 ═══════════ */
 var EMOJIS = ('😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😜 🤪 🤗 🤔 🤨 😐 😑 😶 🙄 😏 😣 😥 😮 😯 😴 😌 😔 😕 🙃 😲 ☹️ 🙁 😖 😞 😟 😤 😢 😭 😦 😧 😨 😩 🤯 😬 😰 😱 🥵 😳 🤢 🤮 😷 🤒 🤕 🤑 🤠 👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👏 🙌 🤝 💪 🙏 ❤️ 💔 💯 💢 💥 💧 ✨ 🎉 🎁 🌹 🍉 🍓 🍺 ☕ 🐶 🐱 🐼 🌙 ⭐ 🔥 ⚡ 🌈').split(/\s+/);
 var epTab = 'emoji';
 
@@ -3085,7 +3344,7 @@ function renderStickerGrid(){
         renderStickerGrid();
       }
     };
-    img.onclick = function(){ sendSticker(dataUrl); };
+    img.onclick = function(){ sendImage(dataUrl); };
     grid.appendChild(img);
   });
   var add = document.createElement('button');
@@ -3139,37 +3398,21 @@ function compressImage(file, maxPx, cb){
   reader.onerror = function(){ cb(null, '读取文件失败'); };
   reader.readAsDataURL(file);
 }
-function sendSticker(dataUrl){
-  if (!currentChat) return;
-  var key = currentChat;
-  var rec = meRec();
-  if (!rec.chats[key]) rec.chats[key] = [];
-  var ts = Date.now();
-  var msg = { w: 'me', img: dataUrl, ts: ts, pending: true };
-  rec.chats[key].push(msg);
-  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
-  saveMe(rec);
-  renderMsgs();
-  hideEmojiPanel();
-  if (chatType === 'group') {
-    var g = rec.groups[key];
-    if (!g) return;
-    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, img: dataUrl, gid: key, ts: ts };
-    deliverOrQueue(g.owner, key, payload, ts);
-    if (g.owner === myUid) {
-      g.members.forEach(function(m){
-        if (m.uid === myUid) return;
-        deliverOrQueue(m.uid, key, payload, 0);
-      });
-      markSent(key, ts);
-    }
-  } else {
-    deliverOrQueue(key, key, { t: 'sticker', uid: myUid, img: dataUrl, ts: ts }, ts);
-  }
-}
 
-/* ═══════════ 图片查看 / 内置浏览器 ═══════════ */
+/* ═══════════ 图片查看 / 视频查看器 ═══════════ */
  $('imgViewer').onclick = function(){ this.hidden = true; };
+ $('vidClose').onclick = function(){
+  var vv = $('vidViewerEl');
+  try { vv.pause(); } catch(e) {}
+  $('vidViewer').hidden = true;
+  vv.removeAttribute('src');
+  vv.load();
+};
+ $('vidOpen').onclick = function(){
+  if ($('vidViewerEl').src) {
+    window.open($('vidViewerEl').src, '_blank', 'noopener');
+  }
+};
 
 function openWebview(url){
   $('wvTitle').textContent = domainOf(url);
