@@ -55,7 +55,6 @@
     display:flex;flex-direction:column;flex-shrink:0}
   .sb-head{padding:14px 16px 10px;display:flex;align-items:center;gap:10px;cursor:pointer}
   .sb-head:hover{background:#FAFAFA}
-  .sb-head b{font-size:15px}
   .sb-me-name{font-size:14px;font-weight:600}
   .sb-me-uid{font-size:10.5px;color:var(--sub);font-family:ui-monospace,Menlo,monospace}
   .net-status{padding:0 16px 10px;font-size:12px;color:var(--sub);line-height:1.5}
@@ -207,7 +206,7 @@
 <main id="authView" hidden>
   <div class="logo">A</div>
   <div class="auth-title">AzChat</div>
-  <div class="auth-sub">点对点加密聊天 · 登录一次，以后自动进入</div>
+  <div class="auth-sub">点对点加密聊天 · 对方离线也能收到消息</div>
   <div class="auth-box">
     <div class="tabs">
       <button type="button" id="tabLogin" class="on">登录</button>
@@ -239,7 +238,7 @@
       <button type="submit" class="btn-primary" id="authSubmit">进入</button>
     </form>
   </div>
-  <p class="auth-note">登录一次后，每次打开网址都会自动进入聊天<br>消息经 WebRTC 端到端加密，不经服务器存储明文</p>
+  <p class="auth-note">在线时 P2P 端到端直连<br>对方离线时消息存入云端信箱，上线即收</p>
 </main>
 
 <div id="appView" hidden>
@@ -252,7 +251,7 @@
       </div>
       <span style="margin-left:auto;color:var(--sub);font-size:12px">✏️</span>
     </div>
-    <div class="net-status" id="netStatus">● 正在连接信令服务器…</div>
+    <div class="net-status" id="netStatus">● 正在连接…</div>
     <div class="btn-row">
       <button type="button" id="btnAddFriend">＋ 好友</button>
       <button type="button" id="btnCreateGroup">👥 群聊</button>
@@ -355,7 +354,7 @@
       <input id="groupNameInput" type="text" placeholder="2–16 个字符" maxlength="16">
     </div>
     <div class="form-err" id="groupCreateErr"></div>
-    <button type="button" class="mbtn green" id="btnDoCreateGroup" style="width:100%">创建（创建后可邀请好友）</button>
+    <button type="button" class="mbtn green" id="btnDoCreateGroup" style="width:100%">创建</button>
   </div>
 </div>
 
@@ -366,7 +365,7 @@
     <div class="req-msg" id="giHint"></div>
     <div class="pick-list" id="giList"></div>
     <div class="form-err" id="giErr"></div>
-    <button type="button" class="mbtn green" id="btnDoInvite" style="width:100%">发送邀请（对方需在线）</button>
+    <button type="button" class="mbtn green" id="btnDoInvite" style="width:100%">发送邀请</button>
   </div>
 </div>
 
@@ -426,7 +425,7 @@
       <input id="pmUid" class="uid-input" type="text" disabled style="background:#F6F6F6;color:var(--sub)">
     </div>
     <div class="form-err" id="pmErr"></div>
-    <button type="button" class="mbtn green" id="btnSaveProfile" style="width:100%">保存（在线好友将同步）</button>
+    <button type="button" class="mbtn green" id="btnSaveProfile" style="width:100%">保存</button>
   </div>
 </div>
 
@@ -436,6 +435,14 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
+/* ═══════════════════════════════════════════════════════
+   ★ 云端信箱配置（已填好你的 Supabase 项目） ★
+   前置条件：在 Supabase SQL Editor 执行建表 SQL（见部署说明）
+═══════════════════════════════════════════════════════ */
+var SB_URL = 'https://ilhalqmtgjmyfdusyrch.supabase.co';
+var SB_KEY = 'sb_publishable_ksRXPTi9gKaqN1QZVfkKBw_4UZprqWc';
+var SB_TABLE = 'az_mail';
+
 window.onerror = function(msg, src, line){
   try { showToast('脚本出错：' + msg + '（第 ' + line + ' 行）', true); } catch(e) {}
   return false;
@@ -608,10 +615,8 @@ function domainOf(u){
   catch(e){ return u; }
 }
 
-/* ═══════════ 本地数据（读取时自动补全字段，根治老数据缺字段问题） ═══════════ */
+/* ═══════════ 本地数据（读取时自动补全字段） ═══════════ */
 var DB_KEY = 'azchat_v5', SES_KEY = 'azchat_session_v5';
-
-/* 关键修复：每次读取数据库时，自动为每个账号补齐所有必需字段 */
 function normalizeAccount(rec, name){
   if (!rec || typeof rec !== 'object') return null;
   if (!rec.uid) return null;
@@ -654,8 +659,87 @@ function isGroupKey(key){
 
 var me = null, myUid = null, peer = null;
 var conns = {}, unread = {}, currentChat = null, chatType = 'friend';
-var flushTimer = null;
+var flushTimer = null, cloudTimer = null, cloudChannel = null;
 
+/* ═══════════ 云端信箱（Supabase） ═══════════ */
+var cloudReady = false, cloudFetching = false;
+var seenCloudIds = {};
+var sbClient = null;
+
+function cloudConfigured(){
+  return SB_URL && SB_KEY &&
+         SB_URL.indexOf('填入') === -1 && SB_KEY.indexOf('填入') === -1;
+}
+function initCloud(cb){
+  if (!cloudConfigured()) { cb(false); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
+  s.onload = function(){
+    try {
+      sbClient = supabase.createClient(SB_URL, SB_KEY);
+      cloudReady = true;
+      /* 实时订阅：对方投递消息后秒级触发拉取（失败也不影响轮询兜底） */
+      try {
+        cloudChannel = sbClient
+          .channel('az_mail_' + myUid)
+          .on('postgres_changes',
+              { event: 'INSERT', schema: 'public', table: SB_TABLE, filter: 'to_uid=eq.' + myUid },
+              function(){ cloudFetch(); })
+          .subscribe();
+      } catch(e) {}
+      cb(true);
+    } catch(e) { cb(false); }
+  };
+  s.onerror = function(){ cb(false); };
+  document.head.appendChild(s);
+}
+/* 云端投递：写入对方信箱，对方上线即拉取。成功 → 消息标记已送达 */
+function cloudSend(toUid, payload, key, ts, onFail){
+  if (!sbClient) { if (onFail) onFail(); return; }
+  sbClient.from(SB_TABLE)
+    .insert([{ to_uid: toUid, body: payload }])
+    .then(function(res){
+      if (res.error) { if (onFail) onFail(); return; }
+      markSent(key, ts);
+    });
+}
+/* 拉取我的云端信箱：收到即本地入库并删除云端记录 */
+function cloudFetch(){
+  if (!sbClient || !me || cloudFetching) return;
+  cloudFetching = true;
+  sbClient.from(SB_TABLE)
+    .select('*')
+    .eq('to_uid', myUid)
+    .order('created_at', { ascending: true })
+    .limit(50)
+    .then(function(res){
+      cloudFetching = false;
+      if (res.error || !res.data || !res.data.length) return;
+      var fresh = [];
+      res.data.forEach(function(row){
+        if (seenCloudIds[row.id]) return;
+        seenCloudIds[row.id] = true;
+        fresh.push(row);
+      });
+      if (!fresh.length) return;
+      var count = 0;
+      fresh.forEach(function(row){
+        try {
+          handleData(dummyConn, row.body);
+          count++;
+        } catch(e) {}
+      });
+      var ids = fresh.map(function(r){ return r.id; });
+      sbClient.from(SB_TABLE).delete().in('id', ids).then(function(){});
+      if (count > 0) showToast('已收到 ' + count + ' 条离线消息 ☁️');
+      flushOutbox();
+    });
+}
+
+/* 假连接：云端拉取的消息复用 handleData 处理 */
+var dummyConn = { send: function(){}, close: function(){} };
+
+/* ═══════════ 启动 ═══════════ */
 (function(){
   try {
     var u = storage.getItem(SES_KEY);
@@ -759,6 +843,17 @@ function enterApp(name){
   renderContacts();
   renderStickerGrid();
   setNet('off');
+  /* 云端信箱：初始化 + 每 10 秒轮询拉取（Realtime 订阅成功时秒级触发） */
+  initCloud(function(ok){
+    if (ok) {
+      setNet(peer && peer.open ? 'on' : 'off');
+      cloudFetch();
+      if (cloudTimer) clearInterval(cloudTimer);
+      cloudTimer = setInterval(cloudFetch, 10000);
+    } else if (cloudConfigured()) {
+      showToast('云端信箱连接失败，将使用在线探测模式', true);
+    }
+  });
   ensurePeerJS(function(ok){
     if (!ok) { setNet('err'); showToast('无法加载 P2P 组件（PeerJS），请检查网络后刷新', true); return; }
     startPeer();
@@ -771,6 +866,8 @@ function enterApp(name){
  $('btnLogout').onclick = function(){
   if (!confirm('退出后下次打开需要重新输入 ID 和密码，确定退出？')) return;
   if (flushTimer) { clearInterval(flushTimer); flushTimer = null; }
+  if (cloudTimer) { clearInterval(cloudTimer); cloudTimer = null; }
+  if (cloudChannel) { try { sbClient.removeChannel(cloudChannel); } catch(e) {} cloudChannel = null; }
   if (peer) { try { peer.destroy(); } catch(e) {} peer = null; }
   try { storage.removeItem(SES_KEY); } catch(e) {}
   me = null;
@@ -780,7 +877,7 @@ function enterApp(name){
   setMode(false);
 };
 
-/* ═══════════ 个人资料 ═══════════ */
+/* ═══════════ 个人资料：头像 / 昵称 ═══════════ */
  $('sbMe').onclick = function(){
   var rec = meRec();
   if (!rec) return;
@@ -871,18 +968,22 @@ function ensurePeerJS(cb){
   tryNext();
 }
 
+/* ═══════════ 信令状态 ═══════════ */
 function setNet(state){
   var el = $('netStatus');
   if (!el) return;
+  var cloudTag = cloudReady ? ' · ☁️信箱已启用' : '';
   if (state === 'on') {
-    el.innerHTML = '<span style="color:var(--green)">● 已连接信令服务器</span>，可加好友 / 收发消息';
+    el.innerHTML = '<span style="color:var(--green)">● 已连接</span>，可收发消息' + cloudTag;
   } else if (state === 'err') {
-    el.innerHTML = '<span style="color:var(--unread)">● 信令连不上！</span>请换网络（如手机热点）后刷新重试';
+    el.innerHTML = '<span style="color:var(--unread)">● P2P 连接受限</span>' +
+      (cloudReady ? '，但 ☁️ 云端信箱仍可收发消息' : '，请换网络后重试');
   } else {
-    el.innerHTML = '<span style="color:#C8A415">● 正在连接信令服务器…</span>';
+    el.innerHTML = '<span style="color:#C8A415">● 正在连接…</span>' + cloudTag;
   }
 }
 
+/* ═══════════ Peer 层（多 STUN + TURN 兜底） ═══════════ */
 function peerIdOf(uid){ return 'azchat-u-' + uid.toLowerCase(); }
 function peerOpts(){
   return {
@@ -912,12 +1013,13 @@ function startPeer(){
   var opened = false;
   peer = new Peer(peerIdOf(myUid), peerOpts());
   setTimeout(function(){
-    if (!opened) { setNet('err'); showToast('连接信令服务器超时，请检查网络', true); }
+    if (!opened) { setNet('err'); }
   }, 12000);
   peer.on('open', function(){
     opened = true;
     setNet('on');
     updateChatStatus();
+    cloudFetch();
   });
   peer.on('connection', bindIncoming);
   peer.on('disconnected', function(){
@@ -940,16 +1042,27 @@ function startPeer(){
   });
 }
 
+/* ═══════════ 统一投递：P2P 直连 → 云端信箱 → 本机队列 ═══════════ */
+function queueLocal(toUid, key, payload, msgTs){
+  var rec = meRec();
+  if (!rec) return;
+  rec.outbox.push({ to: toUid, key: key, payload: payload, ts: msgTs || Date.now() });
+  if (rec.outbox.length > 200) rec.outbox = rec.outbox.slice(-200);
+  saveMe(rec);
+}
 function deliverOrQueue(toUid, key, payload, msgTs){
   ensureConn(toUid, function(c){
     try { c.send(payload); } catch(e) {}
     markSent(key, msgTs);
   }, function(){
-    var rec = meRec();
-    if (!rec) return;
-    rec.outbox.push({ to: toUid, key: key, payload: payload, ts: msgTs || Date.now() });
-    if (rec.outbox.length > 200) rec.outbox = rec.outbox.slice(-200);
-    saveMe(rec);
+    /* 对方不在线：投到云端信箱（关键），云端失败再退回本地队列 */
+    if (cloudReady) {
+      cloudSend(toUid, payload, key, msgTs, function(){
+        queueLocal(toUid, key, payload, msgTs);
+      });
+    } else {
+      queueLocal(toUid, key, payload, msgTs);
+    }
   });
 }
 function markSent(key, ts){
@@ -964,6 +1077,7 @@ function markSent(key, ts){
   }
   if (hit) { saveMe(rec); if (currentChat === key) renderMsgs(); }
 }
+/* 本机 outbox 探测：我在线时主动推给上线的对方 */
 function flushOutbox(){
   if (!me || !peer || !peer.open) return;
   var rec = meRec();
@@ -1056,6 +1170,7 @@ function handleData(c, d){
     } else if (typeof d.img === 'string' && d.img.indexOf('data:image/') === 0 && d.img.length <= 500000) {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), img:d.img, ts:d.ts||Date.now() });
     }
+    /* 我是群主：转发给其他成员（离线的进云端信箱） */
     if (g1.owner === myUid && uid !== myUid) {
       g1.members.forEach(function(m){
         if (m.uid === uid || m.uid === myUid) return;
@@ -1096,6 +1211,7 @@ function handleData(c, d){
   }
 
   if (d.t === 'ginvite') {
+    if (c === dummyConn) return;  /* 群邀请需实时确认，不走云端 */
     if (!d.group || rec.groups[d.group.gid]) return;
     reqQueue.push({ type:'ginvite', c:c, group:d.group, fromName:String(d.name||'').slice(0,16) });
     nextReq();
@@ -1112,7 +1228,7 @@ function handleData(c, d){
       renderContacts();
       showToast('你已被移出群聊「' + g2.name + '」', true);
     }
-    try { c.close(); } catch(e2) {}
+    if (c !== dummyConn) { try { c.close(); } catch(e2) {} }
     return;
   }
 
@@ -1131,8 +1247,8 @@ function handleData(c, d){
       if (g4.members[li].uid === uid) { leaverName = g4.members[li].name; break; }
     }
     removeGroupMember(d.gid, uid, '退出群聊');
-    receiveMsg(d.gid, { w:'them', from:'sys', fromName:'', sysText:(leaverName||'有人') + ' 退出了群聊', ts:Date.now() });
-    try { c.close(); } catch(e2) {}
+    receiveMsg(d.gid, { w:'them', from:'sys', sysText:(leaverName||'有人') + ' 退出了群聊', ts:Date.now() });
+    if (c !== dummyConn) { try { c.close(); } catch(e2) {} }
     return;
   }
 
@@ -1159,7 +1275,7 @@ function handleData(c, d){
       renderContacts();
       showToast('群聊「' + g6.name + '」已被群主解散', true);
     }
-    try { c.close(); } catch(e2) {}
+    if (c !== dummyConn) { try { c.close(); } catch(e2) {} }
     return;
   }
 
@@ -1173,12 +1289,12 @@ function handleData(c, d){
       renderContacts();
       showToast(nm + ' 已将你从好友列表移除', true);
     }
-    try { c.close(); } catch(e2) {}
+    if (c !== dummyConn) { try { c.close(); } catch(e2) {} }
     return;
   }
 
   if (!rec.contacts[uid]) return;
-  if (!conns[uid]) { conns[uid] = c; updateChatStatus(); }
+  if (c !== dummyConn && !conns[uid]) { conns[uid] = c; updateChatStatus(); }
   if (d.t === 'chat' && typeof d.text === 'string') {
     receiveMsg(uid, { w:'them', text:String(d.text).slice(0,2000), ts:d.ts||Date.now() });
   } else if (d.t === 'sticker' && typeof d.img === 'string' && d.img.indexOf('data:image/') === 0) {
@@ -1192,7 +1308,7 @@ function handleData(c, d){
   $('addErr').textContent = '';
   $('addInput').value = '';
   if (peer && !peer.open) {
-    showToast('还没连上信令服务器，请看侧栏状态提示', true);
+    showToast('P2P 未连接，加好友需要双方在线（聊天则不必）', true);
     return;
   }
   openModal('addModal');
@@ -1211,7 +1327,7 @@ function handleData(c, d){
   var uid = 'AZ' + m[1];
   if (uid === myUid) { err.textContent = '这是你自己的 ID 呀'; return; }
   if (meRec().contacts[uid]) { err.textContent = '对方已在你的好友列表中'; return; }
-  if (!peer || !peer.open) { err.textContent = '未连上信令服务器，无法发起'; return; }
+  if (!peer || !peer.open) { err.textContent = 'P2P 未连接，无法发起'; return; }
   err.textContent = '';
   closeModal('addModal');
   sendAddReq(uid);
@@ -1228,7 +1344,7 @@ function sendAddReq(uid){
   }
   var timer = setTimeout(function(){
     if (!done) {
-      showToast('对方不在线或 ID 不存在。对方须在自己设备上注册并保持页面打开', true);
+      showToast('对方不在线或 ID 不存在。加好友需双方同时在线', true);
       finish();
     }
   }, 15000);
@@ -1243,7 +1359,7 @@ function sendAddReq(uid){
       rec.contacts[uid] = { uid: uid, name: String(d.name || uid).slice(0, 16), avatar: d.avatar || '' };
       saveMe(rec);
       renderContacts();
-      showToast('已添加 ' + rec.contacts[uid].name);
+      showToast('已添加 ' + rec.contacts[uid].name + '，之后离线也能聊');
     } else {
       showToast('对方拒绝了你的好友请求', true);
     }
@@ -1257,6 +1373,7 @@ function sendAddReq(uid){
 var reqQueue = [], reqShowing = false;
 function handleAddReq(c, uid, name, avatar){
   var rec = meRec();
+  if (c === dummyConn) return;
   if (rec.contacts[uid]) {
     try { c.send({ t: 'addok', uid: myUid, name: rec.name || me, avatar: rec.avatar || '' }); } catch(e) {}
     return;
@@ -1365,7 +1482,7 @@ var inviteGid = null;
   var box = $('giList');
   box.innerHTML = '';
   $('giErr').textContent = '';
-  $('giHint').textContent = '勾选要邀请的好友（对方需在线才能收到邀请）：';
+  $('giHint').textContent = '勾选要邀请的好友（对方需在线）：';
   var rec = meRec();
   var any = false;
   for (var uid in rec.contacts) {
@@ -1404,7 +1521,6 @@ var inviteGid = null;
   closeModal('groupInviteModal');
   var invited = 0, failed = 0;
   picked.forEach(function(uid){
-    var groupName = g.name;
     var c = peer.connect(peerIdOf(uid), { reliable: true });
     var done = false;
     function finish(){ if (!done) { done = true; try { c.close(); } catch(e) {} } }
@@ -1455,8 +1571,7 @@ function removeGroupMember(gid, uid, reason){
   saveMe(rec);
   var kickPayload = { t: 'gkick', uid: myUid, gid: gid };
   ensureConn(uid, function(c){ try { c.send(kickPayload); } catch(e) {} setTimeout(function(){ try { c.close(); } catch(e2) {} }, 500); }, function(){
-    rec.outbox.push({ to: uid, key: gid, payload: kickPayload, ts: Date.now() });
-    saveMe(rec);
+    deliverOrQueue(uid, gid, kickPayload, 0);
   });
   gsyncGroup(gid);
   renderContacts();
@@ -1533,6 +1648,7 @@ function openGroupModal(gid){
         closeModal('groupModal');
         var kick = { t: 'gkick', uid: myUid, gid: gid };
         ensureConn(m.uid, function(c){ try { c.send(kick); } catch(e) {} }, null);
+        deliverOrQueue(m.uid, gid, kick, 0);
         deliverOrQueue(g.owner, gid, { t: 'gkickreq', uid: myUid, gid: gid }, 0);
         showToast('已移出，等待群主同步');
       };
@@ -1833,8 +1949,8 @@ function renderMsgs(){
     if (isMe && m.pending) {
       var pd = document.createElement('span');
       pd.className = 'm-pending';
-      pd.title = '对方离线，等对方上线后自动送达';
-      pd.textContent = '⏳待送达';
+      pd.title = '投递中（对方上线后送达）';
+      pd.textContent = '⏳';
       bub.appendChild(pd);
     }
     col.appendChild(bub);
@@ -1847,12 +1963,12 @@ function updateChatStatus(){
   if (!currentChat) return;
   if (chatType === 'group') {
     $('chDot').className = 'dot';
-    $('chStatus').textContent = '群聊消息经群主中转';
+    $('chStatus').textContent = cloudReady ? '群聊 · 离线消息走云端' : '群聊消息经群主中转';
     return;
   }
   var on = conns[currentChat] && conns[currentChat].open;
   $('chDot').className = 'dot' + (on ? ' live' : '');
-  $('chStatus').textContent = on ? 'P2P 已连接' : '未连接';
+  $('chStatus').textContent = on ? 'P2P 已连接' : (cloudReady ? '离线 · 消息走云端信箱' : '未连接');
 }
 
 function receiveMsg(key, msg){
@@ -1878,7 +1994,6 @@ function ensureConn(uid, cb, onFail){
   updateChatStatus();
   if (!peer || !peer.open) {
     if (onFail) onFail();
-    else showToast('信令未连接（见侧栏状态）', true);
     return;
   }
   var nc = peer.connect(peerIdOf(uid), { reliable: true });
@@ -1889,7 +2004,7 @@ function ensureConn(uid, cb, onFail){
       updateChatStatus();
       if (onFail) onFail();
     }
-  }, 20000);
+  }, 15000);
   nc.on('open', function(){
     opened = true;
     clearTimeout(timer);
@@ -2086,6 +2201,7 @@ function sendSticker(dataUrl){
   }
 }
 
+/* ═══════════ 图片查看 / 内置浏览器 ═══════════ */
  $('imgViewer').onclick = function(){ this.hidden = true; };
 
 function openWebview(url){
@@ -2117,6 +2233,7 @@ for (var i = 0; i < closeBtns.length; i++) {
   })(closeBtns[i]);
 }
 
+/* ═══════════ 备份 / 导入 ═══════════ */
  $('btnBackup').onclick = function(){
   try {
     var data = { app: 'azchat', ver: 2, db: storage.getItem(DB_KEY) };
