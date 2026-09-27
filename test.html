@@ -157,7 +157,7 @@
   .m-bubble{padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.6;
     white-space:pre-wrap;word-break:break-word;position:relative;user-select:text}
   .m-bubble.has-media{padding:5px;background:var(--bubble-them) !important;white-space:normal;box-shadow:var(--shadow)}
-  .m-bubble.has-media img,.m-bubble.has-media video{max-width:200px;max-height:200px;border-radius:12px;display:block;cursor:zoom-in}
+  .m-bubble.has-media img{max-width:200px;max-height:200px;border-radius:12px;display:block;cursor:zoom-in}
   .them .m-bubble{background:var(--bubble-them);border-top-left-radius:5px;box-shadow:var(--shadow)}
   .me .m-bubble{background:var(--bubble-me);color:var(--bubble-me-text);border-top-right-radius:5px;
     box-shadow:var(--shadow)}
@@ -181,9 +181,8 @@
   .m-audio .dur{font-size:11px;color:var(--sub);flex-shrink:0;font-family:ui-monospace,Menlo,monospace}
   .m-link{color:var(--acc);text-decoration:none;cursor:pointer;word-break:break-all}
   .m-link:hover{text-decoration:underline}
-  /* 视频播放器 */
-  .m-video{position:relative;border-radius:12px;overflow:hidden;background:#000;cursor:pointer}
-  .m-video video{display:block;max-width:200px;max-height:200px;width:auto}
+  .m-video{position:relative;border-radius:12px;overflow:hidden;background:#000;cursor:pointer;min-width:150px}
+  .m-video video{display:block;max-width:220px;max-height:200px;width:auto}
   .m-video .v-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     background:rgba(0,0,0,.25);transition:background .15s}
   .m-video:hover .v-play{background:rgba(0,0,0,.1)}
@@ -194,10 +193,13 @@
     font-size:10px;padding:1px 6px;border-radius:4px;font-family:ui-monospace,Menlo,monospace}
   .m-video .v-size{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;
     font-size:10px;padding:1px 6px;border-radius:4px;font-family:ui-monospace,Menlo,monospace}
-  /* 视频全屏查看 */
+  .m-video .v-uploading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;background:rgba(0,0,0,.55);color:#fff;font-size:12px;gap:8px}
+  .v-prog{width:120px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
+  .v-prog i{display:block;height:100%;background:#fff;border-radius:2px;width:0;transition:width .3s}
   #vidViewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:560;
     display:flex;flex-direction:column;align-items:center;justify-content:center}
-  #vidViewer video{max-width:94vw;max-height:84vh;border-radius:10px;outline:none}
+  #vidViewer video{max-width:94vw;max-height:84vh;border-radius:10px;outline:none;background:#000}
   .vv-bar{margin-top:14px;display:flex;gap:12px}
   .vv-bar button{color:#fff;font-size:13.5px;padding:9px 20px;border-radius:10px;
     background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25)}
@@ -228,8 +230,8 @@
   .mn-all{color:var(--unread);font-weight:600}
   .composer{display:flex;gap:9px;padding:12px 16px 16px;align-items:center;position:relative}
   .btn-emoji,.btn-mic,.btn-media{width:40px;height:44px;display:flex;align-items:center;justify-content:center;
-    border-radius:12px;flex-shrink:0;transition:all .15s}
-  .btn-emoji:hover,.btn-mic:hover,.btn-media:hover{background:var(--panel)}
+    border-radius:12px;flex-shrink:0;transition:all .15s;color:var(--sub)}
+  .btn-emoji:hover,.btn-mic:hover,.btn-media:hover{background:var(--panel);color:var(--ink)}
   .btn-emoji.on{background:rgba(7,193,96,.12);color:var(--acc)}
   .btn-emoji svg,.btn-media svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;
     stroke-linecap:round;stroke-linejoin:round}
@@ -315,7 +317,7 @@
     #chatPane.open{display:flex}
     .btn-back{display:flex}
     .m-row{max-width:88%}
-    .m-bubble.has-media img,.m-bubble.has-media video{max-width:60vw}
+    .m-bubble.has-media img{max-width:60vw}
     .m-video video{max-width:60vw}
   }
 </style>
@@ -446,7 +448,6 @@
 
 <div id="imgViewer" hidden><img id="imgViewerSrc" alt=""></div>
 
-<!-- 视频全屏播放 -->
 <div id="vidViewer" hidden>
   <video id="vidViewerEl" controls playsinline></video>
   <div class="vv-bar">
@@ -606,9 +607,12 @@ var SB_URL = 'https://ilhalqmtgjmyfdusyrch.supabase.co';
 var SB_KEY = 'sb_publishable_ksRXPTi9gKaqN1QZVfkKBw_4UZprqWc';
 var SB_TABLE = 'az_mail';
 var SB_USERS = 'az_users';
+var SB_BUCKET = 'azvid';       /* 视频 Storage bucket（需在控制台创建并设为 Public） */
 
-/* 视频限制（base64 后） */
-var VIDEO_MAX = 3000000;   /* 3MB，约能发 15~30 秒中等画质的短视频 */
+/* 本地 base64 视频的体积上限（超过则改走 Storage） */
+var VIDEO_INLINE_MAX = 3000000;
+/* 视频 URL 缓存已上传文件名 -> 公开链接，避免重复上传 */
+var uploadedVids = {};
 
 window.onerror = function(msg, src, line){
   try { showToast('脚本出错：' + msg + '（第 ' + line + ' 行）', true); } catch(e) {}
@@ -951,17 +955,17 @@ function msgCtxMenu(e, m, isMe, isGroup, g){
           deliverOrQueue(mm2.uid, currentChat, payload, 0);
         });
       }
-      delete m.text; delete m.img; delete m.audio; delete m.video;
+      delete m.text; delete m.img; delete m.audio; delete m.vurl;
       m.recalled = true;
       saveMe(rec);
       renderMsgs();
     }});
   }
-  if (!m.recalled && (m.text || m.img || m.video)) {
+  if (!m.recalled && (m.text || m.img || m.vurl)) {
     items.push('-');
     items.push({ icon: 'forward', label: '复制内容以便转发', fn: function(){
       if (m.text) copyText(m.text, '内容已复制，粘贴到其他聊天发送');
-      else copyText(m.img || m.video, '媒体数据已复制');
+      else copyText(m.vurl || m.img, '媒体数据已复制');
     }});
   }
   if (items.length) showCtxMenu(e.clientX, e.clientY, items);
@@ -1671,7 +1675,7 @@ function handleData(c, d){
       for (var ci = 0; ci < rec.chats[rkey].length; ci++) {
         var cm = rec.chats[rkey][ci];
         if (cm.ts === rts && cm.w === 'them') {
-          delete cm.text; delete cm.img; delete cm.audio; delete cm.video;
+          delete cm.text; delete cm.img; delete cm.audio; delete cm.vurl;
           cm.recalled = true;
           saveMe(rec);
           if (currentChat === rkey) renderMsgs();
@@ -1741,8 +1745,8 @@ function handleData(c, d){
     }
     if (!senderIn) return;
     if (isDupMsg(d.gid, uid, d.ts)) return;
-    if (typeof d.video === 'string' && d.video.indexOf('data:video/') === 0 && d.video.length <= VIDEO_MAX) {
-      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), video:d.video, vsize:d.vsize||0, mentions:d.mentions||[], ts:d.ts||Date.now() });
+    if (typeof d.vurl === 'string' && d.vurl.indexOf('http') === 0) {
+      receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), vurl:d.vurl, vsize:d.vsize||0, vtype:d.vtype||'', mentions:d.mentions||[], ts:d.ts||Date.now() });
     } else if (typeof d.audio === 'string' && d.audio.indexOf('data:audio/') === 0 && d.audio.length <= 1200000) {
       receiveMsg(d.gid, { w:'them', from:uid, fromName:String(d.name||uid).slice(0,16), audio:d.audio, dur:d.dur||0, mentions:d.mentions||[], ts:d.ts||Date.now() });
     } else if (typeof d.text === 'string') {
@@ -1754,7 +1758,7 @@ function handleData(c, d){
       if (!isDupFwd(d.gid, uid, d.ts)) {
         g1.members.forEach(function(m){
           if (m.uid === uid || m.uid === myUid) return;
-          deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, audio:d.audio, video:d.video, vsize:d.vsize, dur:d.dur, mentions:d.mentions, gid:d.gid, ts:d.ts }, 0);
+          deliverOrQueue(m.uid, d.gid, { t:'gmsg', uid:uid, name:d.name, text:d.text, img:d.img, audio:d.audio, vurl:d.vurl, vsize:d.vsize, vtype:d.vtype, dur:d.dur, mentions:d.mentions, gid:d.gid, ts:d.ts }, 0);
         });
       }
     }
@@ -1887,10 +1891,9 @@ function handleData(c, d){
     if (d.audio.length > 1200000) return;
     if (isDupMsg(uid, uid, d.ts)) return;
     receiveMsg(uid, { w:'them', audio:d.audio, dur:d.dur||0, ts:d.ts||Date.now() });
-  } else if (d.t === 'video' && typeof d.video === 'string' && d.video.indexOf('data:video/') === 0) {
-    if (d.video.length > VIDEO_MAX) return;
+  } else if (d.t === 'video' && typeof d.vurl === 'string' && d.vurl.indexOf('http') === 0) {
     if (isDupMsg(uid, uid, d.ts)) return;
-    receiveMsg(uid, { w:'them', video:d.video, vsize:d.vsize||0, ts:d.ts||Date.now() });
+    receiveMsg(uid, { w:'them', vurl:d.vurl, vsize:d.vsize||0, vtype:d.vtype||'', ts:d.ts||Date.now() });
   }
 }
 
@@ -2528,7 +2531,7 @@ function buildBubbleContent(bub, m, isMe){
     bub.appendChild(buildAudioEl(m, isMe));
     return;
   }
-  if (m.video) {
+  if (m.vurl) {
     bub.className += ' has-media';
     bub.appendChild(buildVideoEl(m, isMe));
     return;
@@ -2586,20 +2589,43 @@ function buildBubbleContent(bub, m, isMe){
   });
 }
 
-/* 视频播放元素：封面 + 播放按钮 + 时长/大小角标，点击全屏播放 */
+/* 视频：上传进度气泡 + Storage 直链播放 */
 function buildVideoEl(m, isMe){
   var wrap = document.createElement('div');
   wrap.className = 'm-video';
 
   var video = document.createElement('video');
-  video.src = m.video;
   video.muted = true;
   video.playsInline = true;
   video.preload = 'metadata';
-  /* 静音播放前 0.1 秒作为封面 */
-  video.onloadeddata = function(){
-    try { video.currentTime = 0.1; } catch(e) {}
-  };
+
+  /* 上传中：显示进度覆盖层（仅自己的消息且 URL 未就绪） */
+  if (isMe && m.uploading) {
+    var up = document.createElement('div');
+    up.className = 'v-uploading';
+    var pt = document.createElement('div');
+    pt.textContent = '上传中 ' + (m.upPct || 0) + '%';
+    var pr = document.createElement('div');
+    pr.className = 'v-prog';
+    var pi = document.createElement('i');
+    pi.style.width = (m.upPct || 0) + '%';
+    pr.appendChild(pi);
+    up.appendChild(pt);
+    up.appendChild(pr);
+    wrap.appendChild(up);
+    wrap._upPct = pt;
+    wrap._upBar = pi;
+    wrap._uploading = true;
+    /* 本地预览：直接用本地 blob 数据 */
+    if (m.localUrl) {
+      video.src = m.localUrl;
+    }
+  } else {
+    video.src = m.vurl || '';
+    if (m.vtype && m.vtype.indexOf('mp4') > -1) {
+      video.type = 'video/mp4';
+    }
+  }
 
   var playOv = document.createElement('div');
   playOv.className = 'v-play';
@@ -2610,40 +2636,38 @@ function buildVideoEl(m, isMe){
 
   var dur = document.createElement('span');
   dur.className = 'v-dur';
-  dur.textContent = '…';
+  dur.textContent = m.uploading ? '…' : '';
 
   var sz = document.createElement('span');
   sz.className = 'v-size';
-  sz.textContent = fmtSize(Math.round((m.video.length - m.video.indexOf(',') - 1) * 0.75));
+  sz.textContent = m.vsize ? fmtSize(m.vsize) : '';
 
-  wrap.appendChild(video);
-  wrap.appendChild(playOv);
-  wrap.appendChild(dur);
-  wrap.appendChild(sz);
-
-  video.onloadedmetadata = function(){
-    if (isFinite(video.duration)) {
-      var d = Math.round(video.duration);
-      dur.textContent = d < 60 ? (d + 's') : Math.floor(d/60) + 'm' + (d%60) + 's';
-    }
-  };
-
-  var opened = false;
-  wrap.onclick = function(e){
-    e.stopPropagation();
-    /* 点击 → 全屏播放器 */
-    var vv = $('vidViewerEl');
-    if (!vv.src || vv.src !== m.video) {
-      vv.src = m.video;
-      opened = false;
-    }
-    $('vidViewer').hidden = false;
-    if (!opened) {
+  if (!m.uploading) {
+    wrap.appendChild(video);
+    wrap.appendChild(playOv);
+    wrap.appendChild(dur);
+    wrap.appendChild(sz);
+    video.onloadeddata = function(){
+      try { video.currentTime = 0.1; } catch(e) {}
+    };
+    video.onloadedmetadata = function(){
+      if (isFinite(video.duration)) {
+        var d = Math.round(video.duration);
+        dur.textContent = d < 60 ? (d + 's') : Math.floor(d/60) + 'm' + (d%60) + 's';
+      }
+    };
+    wrap.onclick = function(e){
+      e.stopPropagation();
+      var vv = $('vidViewerEl');
+      vv.src = m.vurl;
+      $('vidViewer').hidden = false;
       var p = vv.play();
       if (p && p.catch) p.catch(function(){});
-      opened = true;
-    }
-  };
+    };
+  } else {
+    wrap.appendChild(video);
+    wrap.appendChild(up);
+  }
   return wrap;
 }
 
@@ -2761,7 +2785,7 @@ function recallMsg(m){
       deliverOrQueue(g.owner, key, payload, 0);
     }
   }
-  delete m.text; delete m.img; delete m.audio; delete m.video;
+  delete m.text; delete m.img; delete m.audio; delete m.vurl;
   m.recalled = true;
   saveMe(rec);
   renderMsgs();
@@ -2806,7 +2830,7 @@ function receiveMsg(key, msg){
       unread[key] = (unread[key] || 0) + 1;
     }
     var preview = msg.sysText ? msg.sysText.slice(0,20) :
-                  msg.video ? '[视频]' :
+                  msg.vurl ? '[视频]' :
                   msg.audio ? '[语音]' :
                   msg.img ? '[贴图]' : String(msg.text || '').replace(/\[\[mn:[^\]]+\]\]/g, '@').slice(0, 20);
     var who = msg.fromName || (rec.contacts[key] ? displayName(rec, key, rec.contacts[key].name) : (rec.groups[key] ? rec.groups[key].name : ''));
@@ -2815,7 +2839,7 @@ function receiveMsg(key, msg){
   renderContacts();
 }
 
-/* ═══════════ 连接建立（迟到连接作废） ═══════════ */
+/* ═══════════ 连接建立 ═══════════ */
 function ensureConn(uid, cb, onFail){
   var c = conns[uid];
   if (c && c.open) { if (cb) cb(c); return; }
@@ -3025,7 +3049,7 @@ function sendAudio(dataUrl, dur){
   }
 }
 
-/* ═══════════ 图片/视频 选择与压缩 ═══════════ */
+/* ═══════════ 图片/视频选择 ═══════════ */
  $('btnMedia').onclick = function(){
   if (!currentChat) return;
   $('mediaFile').value = '';
@@ -3047,128 +3071,95 @@ function sendAudio(dataUrl, dur){
   }
 };
 
-/* 视频压缩：转码为小尺寸低码率 webm，控制在可发送体积内 */
+/* ═══════════ 视频：直接上传原文件到 Storage，消息传链接 ═══════════
+   不再压缩（保留原始画质），大小限制 50MB（Supabase 免费单文件上限） */
 function handleVideoFile(file){
-  if (!URL.createObjectURL) { showToast('浏览器不支持视频处理', true); return; }
-  showToast('正在压缩视频，请稍候…');
-  var inUrl = URL.createObjectURL(file);
-  var v = document.createElement('video');
-  v.muted = true;
-  v.playsInline = true;
-  v.src = inUrl;
-  var failed = setTimeout(function(){
-    cleanup();
-    showToast('视频读取超时或格式不支持', true);
-  }, 15000);
-  function cleanup(){
-    clearTimeout(failed);
-    try { URL.revokeObjectURL(inUrl); } catch(e) {}
+  if (!sbClient || !cloudReady) {
+    showToast('云端未连接，无法上传视频', true);
+    return;
   }
-  v.onloadedmetadata = function(){
-    /* 太长的视频直接拒绝（压缩后体积不可控） */
-    if (v.duration > 60) {
-      cleanup();
-      showToast('视频过长（超 60 秒），请剪辑后再发', true);
+  if (file.size > 50 * 1024 * 1024) {
+    showToast('视频超过 50MB 上限', true);
+    return;
+  }
+  showToast('正在上传视频（' + fmtSize(file.size) + '）…');
+
+  var key = currentChat;
+  var rec = meRec();
+  var ts = Date.now();
+  if (!rec.chats[key]) rec.chats[key] = [];
+
+  /* 先插入一条"上传中"的本地消息气泡 */
+  var localUrl = URL.createObjectURL(file);
+  var msg = { w:'me', vurl:'', vsize:file.size, vtype:(file.name.split('.').pop()||'mp4'),
+              ts:ts, pending:true, uploading:true, localUrl:localUrl };
+  rec.chats[key].push(msg);
+  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
+  saveMe(rec);
+  renderMsgs();
+
+  var ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4';
+  var fname = myUid + '_' + ts + '.' + ext;
+
+  sbClient.storage.from(SB_BUCKET).upload(fname, file, {
+    contentType: file.type || 'video/mp4',
+    cacheControl: '31536000',
+    upsert: false
+  }).then(function(res){
+    if (res.error) {
+      showToast('视频上传失败：' + res.error.message, true);
+      removePendingVideo(key, ts);
       return;
     }
-    var MAXW = 480;
-    var scale = Math.min(1, MAXW / Math.max(v.videoWidth, 1));
-    var cv = document.createElement('canvas');
-    cv.width = Math.max(2, Math.round(v.videoWidth * scale / 2) * 2);
-    cv.height = Math.max(2, Math.round(v.videoHeight * scale / 2) * 2);
-    var ctx = cv.getContext('2d');
-    var stream;
-    try {
-      stream = cv.captureStream(15);   /* 15fps 足够看 */
-    } catch(e) {
-      cleanup();
-      showToast('此浏览器不支持视频压缩', true);
+    /* 公开链接 */
+    var pub = sbClient.storage.from(SB_BUCKET).getPublicUrl(fname);
+    var vurl = pub.data && pub.data.publicUrl ? pub.data.publicUrl : '';
+    if (!vurl) {
+      showToast('获取视频链接失败', true);
+      removePendingVideo(key, ts);
       return;
     }
-    var audioStream = null;
-    try {
-      /* 提取原视频音轨 */
-      var av = v.captureStream ? null : null;
-    } catch(e) {}
-    /* 用 WebAudio 重新封装原视频的音频（若可获取） */
-    try {
-      var ac = new (window.AudioContext || window.webkitAudioContext)();
-      var srcNode = ac.createMediaElementSource(v);
-      var dest = ac.createMediaStreamDestination();
-      srcNode.connect(dest);
-      srcNode.connect(ac.destination);
-      audioStream = dest.stream;
-      audioStream._ac = ac;
-    } catch(e) { audioStream = null; }
-    var tracks = stream.getVideoTracks();
-    if (audioStream && audioStream.getAudioTracks().length) {
-      tracks = tracks.concat(audioStream.getAudioTracks());
-    }
-    var mixStream = new MediaStream(tracks);
-    var mtype = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus') ? 'video/webm;codecs=vp8,opus'
-              : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : '';
-    if (!mtype) {
-      cleanup();
-      showToast('此浏览器不支持视频压缩', true);
-      return;
-    }
-    var mr;
-    try {
-      mr = new MediaRecorder(mixStream, {
-        mimeType: mtype,
-        videoBitsPerSecond: 500000,    /* 500kbps，够清晰又小 */
-        audioBitsPerSecond: 48000
-      });
-    } catch(e) {
-      cleanup();
-      showToast('此浏览器不支持视频压缩', true);
-      return;
-    }
-    var chunks = [];
-    mr.ondataavailable = function(ev){
-      if (ev.data && ev.data.size) chunks.push(ev.data);
-    };
-    mr.onstop = function(){
-      cleanup();
-      if (audioStream && audioStream._ac) { try { audioStream._ac.close(); } catch(e2) {} }
-      var blob = new Blob(chunks, { type: 'video/webm' });
-      var reader = new FileReader();
-      reader.onload = function(){
-        var dataUrl = reader.result;
-        if (dataUrl.length > VIDEO_MAX) {
-          showToast('视频压缩后仍过大（' + fmtSize(blob.size) + '），请缩短时长', true);
-          return;
-        }
-        showToast('压缩完成（' + fmtSize(blob.size) + '），发送中…');
-        sendVideo(dataUrl, blob.size);
-      };
-      reader.readAsDataURL(blob);
-    };
-    /* 播放并录制：视频画到 canvas，音频直连 */
-    v.onended = function(){ setTimeout(function(){ try { mr.stop(); } catch(e) {} }, 300); };
-    v.onerror = function(){
-      try { mr.stop(); } catch(e) {}
-    };
-    v.currentTime = 0;
-    v.muted = false;
-    v.play().then(function(){
-      mr.start(250);
-      function drawLoop(){
-        if (v.ended || v.paused) return;
-        ctx.drawImage(v, 0, 0, cv.width, cv.height);
-        requestAnimationFrame(drawLoop);
+    /* 更新本地消息：去掉上传态，写入链接 */
+    var rec2 = meRec();
+    var arr = rec2.chats[key] || [];
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i].ts === ts && arr[i].w === 'me') {
+        arr[i].vurl = vurl;
+        delete arr[i].uploading;
+        delete arr[i].localUrl;
+        break;
       }
-      requestAnimationFrame(drawLoop);
-      /* 安全兜底：到时长上限强制停 */
-      setTimeout(function(){ try { if (mr.state === 'recording') mr.stop(); } catch(e) {} }, (v.duration + 2) * 1000);
-    }).catch(function(){
-      try { mr.stop(); } catch(e) {}
-    });
-  };
-  v.onerror = function(){
-    cleanup();
-    showToast('无法读取该视频文件', true);
-  };
+    }
+    saveMe(rec2);
+    try { URL.revokeObjectURL(localUrl); } catch(e) {}
+    if (currentChat === key) renderMsgs();
+    showToast('上传完成，发送中…');
+    /* 发送链接消息 */
+    if (chatType === 'group' && isGroupKey(key)) {
+      var g = meRec().groups[key];
+      var payload = { t: 'gmsg', uid: myUid, name: meRec().name || me, vurl: vurl, vsize: file.size, vtype: ext, gid: key, ts: ts };
+      deliverOrQueue(g.owner, key, payload, ts);
+      if (g.owner === myUid) {
+        g.members.forEach(function(m){
+          if (m.uid === myUid) return;
+          deliverOrQueue(m.uid, key, payload, 0);
+        });
+        markSent(key, ts);
+      }
+    } else {
+      deliverOrQueue(key, key, { t: 'video', uid: myUid, vurl: vurl, vsize: file.size, vtype: ext, ts: ts }, ts);
+    }
+  }).catch(function(err){
+    showToast('视频上传失败：' + (err && err.message ? err.message : '未知错误'), true);
+    removePendingVideo(key, ts);
+  });
+}
+function removePendingVideo(key, ts){
+  var rec = meRec();
+  var arr = rec.chats[key] || [];
+  rec.chats[key] = arr.filter(function(m){ return !(m.ts === ts && m.w === 'me' && m.uploading); });
+  saveMe(rec);
+  if (currentChat === key) renderMsgs();
 }
 
 function sendImage(dataUrl){
@@ -3196,33 +3187,6 @@ function sendImage(dataUrl){
     }
   } else {
     deliverOrQueue(key, key, { t: 'sticker', uid: myUid, img: dataUrl, ts: ts }, ts);
-  }
-}
-function sendVideo(dataUrl, size){
-  if (!currentChat) return;
-  var key = currentChat;
-  var rec = meRec();
-  if (!rec.chats[key]) rec.chats[key] = [];
-  var ts = Date.now();
-  var msg = { w: 'me', video: dataUrl, vsize: size, ts: ts, pending: true };
-  rec.chats[key].push(msg);
-  if (rec.chats[key].length > 300) rec.chats[key] = rec.chats[key].slice(-300);
-  saveMe(rec);
-  renderMsgs();
-  if (chatType === 'group') {
-    var g = rec.groups[key];
-    if (!g) return;
-    var payload = { t: 'gmsg', uid: myUid, name: rec.name || me, video: dataUrl, vsize: size, gid: key, ts: ts };
-    deliverOrQueue(g.owner, key, payload, ts);
-    if (g.owner === myUid) {
-      g.members.forEach(function(m){
-        if (m.uid === myUid) return;
-        deliverOrQueue(m.uid, key, payload, 0);
-      });
-      markSent(key, ts);
-    }
-  } else {
-    deliverOrQueue(key, key, { t: 'video', uid: myUid, video: dataUrl, vsize: size, ts: ts }, ts);
   }
 }
 
